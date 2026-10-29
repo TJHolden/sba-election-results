@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261029103227">
+<meta name="build" content="20261029115742">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261029103227"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261029115742"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -307,7 +307,9 @@
             const w = cands.find((c) => c.winner);
             return w === c1 ? p1 : w === c2 ? p2 : ballot ? yn(w) : partyCode(w && w.party);
           })() : null,
-          ...called ? { wname: ((cands.find((c) => c.winner) || {}).name || "").replace(/\s+/g, " ").trim() } : {},
+          ...called ? { wname: ((cands.find((c) => c.winner) || {}).name || "").replace(/\s+/g, " ").trim(), wnames: cands.filter((c) => c.winner).map((c) => (c.name || "").replace(/\s+/g, " ").trim()) } : {},
+          ...cands.length > 2 && cands.length <= 40 ? { xo: cands.slice(2).map((c) => [(c.name || "").replace(/\s+/g, " ").trim(), c.percent || 0, partyCode(c.party), c.votes || 0]) } : {},
+          /* SBA edition: every candidate, even under 1% */
           poll1: null,
           poll2: null,
           flip: !1,
@@ -1736,36 +1738,73 @@
         const last = x[x.length - 1];
         return y.includes(last) ? y.includes(x[0]) ? 2 : 1 : 0;
       }
-      const raceDist = (r) => r.type === "House" ? cdOf(r) : r.type === "State Senate" || r.type === "State House" ? legNum(r) : null;
+      const distNorm = (s) => {
+        let t = String(s || "").toLowerCase().replace(/\b(state\s+)?(house|senate|assembly|district|dist\.?|hd|sd|ad|ld|cd|seat|no\.?|#)\b/g, " ").replace(/[^a-z0-9]+/g, "");
+        return t = t.replace(/^0+(?=\d)/, ""), t === "0" || t === "al" || t === "atlarge" ? "al" : t;
+      }, raceDistKeys = (r) => {
+        const k = /* @__PURE__ */ new Set(), add = (x) => {
+          const n = distNorm(x);
+          n && k.add(n);
+        };
+        if (r.type === "House") {
+          const c = cdOf(r);
+          c && add(c);
+        }
+        if (r.type === "State Senate" || r.type === "State House") {
+          const n = legNum(r);
+          n && add(n);
+        }
+        return add(String(r.district || "").replace(new RegExp("^" + r.abbr + "[-\\s]*", "i"), "")), add(String(r.name || "").replace(/^(US\s+)?(State\s+)?(House|Senate|Assembly|House of Delegates)\s*/i, "")), k;
+      }, typeEq = (rt, pt) => {
+        const a = String(rt || "").toLowerCase().trim(), b = String(pt || "").toLowerCase().trim();
+        return a === b || !/house|senate/.test(b) && a.replace(/^state\s+/, "") === b.replace(/^state\s+/, "");
+      }, raceCands = (r) => [[r.c1, r.a1, r.p1, r.v1], [r.c2, r.a2, r.p2, r.v2], ...r.xo && r.xo.length ? r.xo : (r.others || []).map((o) => [o.name, o.pct, o.party, o.votes])].filter((x) => x[0] && x[0] !== "\u2014");
       function sbaMatch(picks, all) {
+        const seen = /* @__PURE__ */ new Map();
         return picks.map((p, i) => {
-          const pool = all.filter((r) => r.abbr === p.st && r.type === p.type && String(r.electionDate).startsWith("2026-11") && (p.dist == null || raceDist(r) === String(p.dist)));
-          let race = null, cand = null, score = 0;
-          return pool.forEach((r) => [r.c1, r.c2, ...r.xc || []].forEach((n) => {
-            const s = nameMatch(p.name, n);
-            s > score && (score = s, race = r, cand = n);
-          })), { i, p, race, cand, inFeed: pool.length > 0, pool: pool[0] || null };
+          const key = `${p.st}|${String(p.type).toLowerCase()}|${p.dist || ""}|${nameToks(p.name).join(" ")}`, dup = seen.has(key);
+          seen.set(key, 1);
+          const pd = p.dist == null ? null : distNorm(p.dist), pool = all.filter((r) => r.abbr === p.st && typeEq(r.type, p.type) && String(r.electionDate).startsWith("2026-11") && (pd == null || raceDistKeys(r).has(pd))), hits = [];
+          pool.forEach((r) => {
+            let best = 0, cand = null;
+            raceCands(r).map((x) => x[0]).concat(r.xc || []).forEach((n) => {
+              const sc = nameMatch(p.name, n);
+              sc > best && (best = sc, cand = n);
+            }), best && hits.push({ r, cand, score: best });
+          });
+          const full = hits.filter((h) => h.score === 2), use = full.length ? full : hits;
+          if (use.length === 1 && use[0].score === 2) return { i, p, race: use[0].r, cand: use[0].cand, inFeed: !0, dup };
+          const why = pool.length ? use.length ? use.length > 1 ? "ambiguous" : "lastname" : "nomatch" : null;
+          return { i, p, race: null, cand: use[0] ? use[0].cand : null, inFeed: pool.length > 0, review: why, dup, maybe: use.map((h) => `${h.r.name} \u2014 ${h.cand}`) };
         });
       }
       function sbaStatus(m) {
         const r = m.race;
-        if (!r) return { k: m.inFeed ? "nocand" : "nofeed" };
-        const list = [[r.c1, r.a1, r.p1, r.v1], [r.c2, r.a2, r.p2, r.v2], ...(r.others || []).map((o) => [o.name, o.pct, o.party, o.votes])].filter((x) => x[0] && x[0] !== "\u2014"), ours = list.find((x) => nameMatch(m.p.name, x[0]) > 0) || [m.cand, 0, "?", 0], opp = list.filter((x) => x !== ours).sort((a, b) => b[1] - a[1])[0] || null, base = { ours, opp, party: ours[2] };
+        if (!r) return { k: m.inFeed ? "review" : "nofeed" };
+        const list = raceCands(r), ours = list.find((x) => x[0] === m.cand) || null, base = { ours, party: ours ? ours[2] : null };
+        if (!ours) return { ...base, k: "review" };
+        const others = list.filter((x) => x !== ours).sort((a, b) => (b[3] || 0) - (a[3] || 0) || (b[1] || 0) - (a[1] || 0)), opp = others[0] || null;
+        base.opp = opp;
+        const tot = list.reduce((a, x) => a + (x[3] || 0), 0), vm = opp && tot > 0 ? 100 * ((ours[3] || 0) - (opp[3] || 0)) / tot : null, seats = r.wnames && r.wnames.length || 1, multi = seats > 1 || multiParty(r);
         if (r.called) {
-          const won = r.wname ? nameMatch(m.p.name, r.wname) > 0 : list[0] === ours;
-          return { ...base, k: won ? "won" : "lost", margin: opp ? ours[1] - opp[1] : null };
+          const won = (r.wnames && r.wnames.length ? r.wnames : [r.wname]).filter(Boolean).includes(m.cand);
+          return { ...base, k: won ? "won" : "lost", margin: seats > 1 ? null : vm, multi };
         }
-        if (isUncontested(r) || !opp) return { ...base, k: "unopposed" };
-        if (!(r.v1 + r.v2 > 0)) return { ...base, k: "notyet" };
-        const margin = ours[1] - opp[1];
-        return { ...base, k: margin > 0 ? "leading" : margin < 0 ? "trailing" : "tied", margin };
+        if (r.c2 === "\u2014" || !opp) return { ...base, k: "unopposed" };
+        if (!(tot > 0)) return { ...base, k: "notyet" };
+        if (multi) {
+          const place = 1 + others.filter((x) => (x[3] || 0) > (ours[3] || 0)).length;
+          return { ...base, k: "place", place, of: list.length, multi };
+        }
+        return { ...base, k: (ours[3] || 0) > (opp[3] || 0) ? "leading" : (ours[3] || 0) < (opp[3] || 0) ? "trailing" : "tied", margin: vm };
       }
-      const SBA_STATUS = { won: ["Won", T.green], lost: ["Lost", T.red], leading: ["Leading", T.green], trailing: ["Trailing", T.amber], tied: ["Tied", T.amber], notyet: ["Not yet counting", T.text3], unopposed: ["Unopposed", T.text3], nofeed: ["Results not in feed", T.text4], nocand: ["Candidate not on this ballot in the feed", T.text4] }, SbaBadge = () => /* @__PURE__ */ React.createElement("span", { title: "A candidate the Sports Betting Alliance is backing", style: { fontFamily: SANS, fontSize: 8.5, fontWeight: 800, letterSpacing: 0.5, color: "#fff", background: T.gold, padding: "1px 5px", borderRadius: 3, marginLeft: 5, verticalAlign: "1px", flexShrink: 0 } }, "SBA");
+      const ord = (n) => n + (n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th"), SBA_STATUS = { won: ["Won", T.green], lost: ["Lost", T.red], leading: ["Leading", T.green], trailing: ["Trailing", T.amber], tied: ["Tied", T.amber], place: ["Counting", T.amber], notyet: ["Not yet counting", T.text3], unopposed: ["Unopposed", T.text3], nofeed: ["Results not in feed", T.text4], review: ["Couldn't match candidate in feed", T.text4] }, SbaBadge = () => /* @__PURE__ */ React.createElement("span", { title: "A candidate the Sports Betting Alliance is backing", style: { fontFamily: SANS, fontSize: 8.5, fontWeight: 800, letterSpacing: 0.5, color: "#fff", background: T.gold, padding: "1px 5px", borderRadius: 3, marginLeft: 5, verticalAlign: "1px", flexShrink: 0 } }, "SBA");
       function SbaTab({ matches, hist, calledAt }) {
         const narrow = React.useContext(NarrowCtx), est = React.useContext(EstCtx), [flt, setFlt] = useState("all"), [q, setQ] = useState(""), [open, setOpen] = useState(null), rows = useMemo(() => matches.map((m) => {
           const s = sbaStatus(m), pr = m.race && est && est.proj.byId[m.race.id];
           let chance = null;
-          pr && !pr.done && pr.p != null && m.race && drPair(m.race) && (s.party === "D" || s.party === "R") && (m.race.p1 === s.party || m.race.p2 === s.party) && (chance = s.party === "D" ? pr.p : 1 - pr.p);
+          const r = m.race;
+          pr && !pr.done && pr.p != null && r && !r.called && drPair(r) && !multiParty(r) && !s.multi && (s.k === "leading" || s.k === "trailing" || s.k === "tied") && s.ours && (s.ours[0] === r.c1 || s.ours[0] === r.c2) && (s.party === "D" || s.party === "R") && (chance = s.party === "D" ? pr.p : 1 - pr.p);
           const ex = m.race && est && est.exp[m.race.id];
           return { ...m, s, chance, pct: ex && ex.C ? ex.pct : m.race ? m.race.rpt : null };
         }), [matches, est]), counts = useMemo(() => {
@@ -1773,11 +1812,11 @@
           return rows.forEach((x) => {
             c[x.s.k] = (c[x.s.k] || 0) + 1;
           }), c;
-        }, [rows]), live = (k) => k === "leading" || k === "trailing" || k === "tied" || k === "notyet", shown = rows.filter((x) => (flt === "all" || (flt === "live" ? live(x.s.k) : x.s.k === flt)) && (!q || `${x.p.name} ${x.p.label || ""} ${STATE_NAMES[x.p.st] || x.p.st} ${x.race ? x.race.name : ""}`.toLowerCase().includes(q.toLowerCase()))), ORDER = { trailing: 0, tied: 0, leading: 1, notyet: 2, won: 3, lost: 3, unopposed: 4, nocand: 5, nofeed: 5 }, byState = {};
+        }, [rows]), live = (k) => k === "leading" || k === "trailing" || k === "tied" || k === "notyet" || k === "place", shown = rows.filter((x) => (flt === "all" || (flt === "live" ? live(x.s.k) : x.s.k === flt)) && (!q || `${x.p.name} ${x.p.label || ""} ${STATE_NAMES[x.p.st] || x.p.st} ${x.race ? x.race.name : ""}`.toLowerCase().includes(q.toLowerCase()))), ORDER = { trailing: 0, tied: 0, place: 0, leading: 1, notyet: 2, won: 3, lost: 3, unopposed: 4, review: 5, nofeed: 5 }, byState = {};
         shown.forEach((x) => {
           (byState[x.p.st] = byState[x.p.st] || []).push(x);
         });
-        const states = Object.keys(byState).sort((a, b) => (STATE_NAMES[a] || a).localeCompare(STATE_NAMES[b] || b)), fmtM2 = (x, k) => x == null || k === "notyet" || k === "unopposed" ? "" : `${k === "won" ? "Won by" : k === "lost" ? "Lost by" : x >= 0 ? "Ahead by" : "Behind by"} ${Math.abs(x).toFixed(1)}`, runoff = (x) => x.race && (x.race.abbr === "GA" || x.race.abbr === "LA") && !x.race.called && x.s.ours && x.race.v1 + x.race.v2 > 0 && Math.max(x.race.a1 || 0, x.race.a2 || 0) < 50, chanceTxt = (c) => c == null ? "" : c >= 0.8 ? "Projected: likely win" : c >= 0.6 ? "Projected: leans win" : c > 0.4 ? "Projected: toss-up" : c > 0.2 ? "Projected: leans loss" : "Projected: likely loss", summary = [["won", "won"], ["leading", "leading"], ["trailing", "trailing"], ["notyet", "not yet counting"], ["lost", "lost"], ["unopposed", "unopposed"]].filter(([k]) => counts[k]).map(([k, l]) => `${counts[k]} ${l}`).join(" \xB7 ");
+        const states = Object.keys(byState).sort((a, b) => (STATE_NAMES[a] || a).localeCompare(STATE_NAMES[b] || b)), fmtM2 = (x, k, s) => k === "place" && s ? `${ord(s.place)} of ${s.of} \u2014 more than one winner or several from one party, so no head-to-head margin` : x == null || k === "notyet" || k === "unopposed" || k === "tied" ? "" : `${k === "won" ? "Won by" : k === "lost" ? "Lost by" : x >= 0 ? "Ahead by" : "Behind by"} ${Math.abs(x).toFixed(1)}`, runoff = (x) => x.race && (x.race.abbr === "GA" || x.race.abbr === "LA") && !x.race.called && x.s.ours && x.race.v1 + x.race.v2 > 0 && Math.max(x.race.a1 || 0, x.race.a2 || 0) < 50, chanceTxt = (c) => c == null ? "" : c >= 0.8 ? "Projected: likely win" : c >= 0.6 ? "Projected: leans win" : c > 0.4 ? "Projected: toss-up" : c > 0.2 ? "Projected: leans loss" : "Projected: likely loss", summary = [["won", "won"], ["leading", "leading"], ["trailing", "trailing"], ["tied", "tied"], ["place", "counting"], ["notyet", "not yet counting"], ["lost", "lost"], ["unopposed", "unopposed"], ["review", "couldn't be matched"], ["nofeed", "not in feed"]].filter(([k]) => counts[k]).map(([k, l]) => `${counts[k]} ${l}`).join(" \xB7 ");
         return matches.length ? /* @__PURE__ */ React.createElement("div", { className: "en-pad", style: { padding: narrow ? "16px 12px" : "20px 24px", display: "flex", flexDirection: "column", gap: 16 } }, /* @__PURE__ */ React.createElement("div", { style: { background: T.card, border: `1px solid ${T.gold}`, borderRadius: 10, padding: "14px 18px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SANS, fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.goldText, textTransform: "uppercase" } }, "SBA Candidates"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SERIF, fontSize: narrow ? 18 : 21, fontWeight: 700, marginTop: 4 } }, matches.length, " candidate", matches.length === 1 ? "" : "s", summary ? /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SANS, fontSize: 13, fontWeight: 500, color: T.text2 } }, " \xB7 ", summary) : null), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: T.text3, marginTop: 4 } }, "Candidates the Sports Betting Alliance is backing. Live results update on their own; a race shows Won or Lost once it is called. Click a race for the full results."), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12, alignItems: "center" } }, [["all", "All", matches.length], ["live", "Still counting", rows.filter((x) => live(x.s.k)).length], ["won", "Won", counts.won || 0], ["lost", "Lost", counts.lost || 0]].map(([k, l, n]) => /* @__PURE__ */ React.createElement(Pill, { key: k, active: flt === k, onClick: () => setFlt(k) }, l, " ", /* @__PURE__ */ React.createElement("span", { style: { opacity: 0.7 } }, n))), /* @__PURE__ */ React.createElement("input", { value: q, onChange: (e) => setQ(e.target.value), placeholder: "Search candidate, state or district", "aria-label": "Search SBA candidates", style: { marginLeft: narrow ? 0 : "auto", flex: narrow ? "1 1 100%" : "0 1 260px", fontFamily: SANS, fontSize: 12.5, padding: "7px 10px", border: `1px solid ${T.border2}`, borderRadius: 8, background: "#fff", color: T.text } }))), states.length === 0 && /* @__PURE__ */ React.createElement("div", { style: { color: T.text3, fontSize: 13 } }, "No candidates match."), states.map((st) => /* @__PURE__ */ React.createElement("div", { key: st, style: { background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "9px 18px", borderBottom: `1px solid ${T.border}`, background: T.surface, fontFamily: SERIF, fontSize: 15, fontWeight: 700 } }, STATE_NAMES[st] || st, " ", /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SANS, fontSize: 11, fontWeight: 500, color: T.text3 } }, "\xB7 ", byState[st].length)), byState[st].sort((a, b) => {
           var _a, _b;
           return ORDER[a.s.k] - ORDER[b.s.k] || Math.abs((_a = a.s.margin) != null ? _a : 99) - Math.abs((_b = b.s.margin) != null ? _b : 99) || String(a.p.label || "").localeCompare(String(b.p.label || ""), void 0, { numeric: !0 });
@@ -1796,9 +1835,9 @@
               style: { display: "grid", gridTemplateColumns: narrow ? "minmax(0,1fr) auto" : "minmax(0,1.1fr) minmax(0,1.3fr) minmax(0,1fr) 150px", gap: narrow ? "4px 10px" : 14, padding: narrow ? "10px 12px" : "11px 18px", alignItems: "center", cursor: r ? "pointer" : "default", background: isOpen ? T.hover : "transparent" }
             },
             /* @__PURE__ */ React.createElement("div", { style: { minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SERIF, fontSize: 14, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, raceName), !narrow && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.text3 } }, x.pct != null && r && r.v1 + r.v2 > 0 ? `~${x.pct}% counted` : "")),
-            /* @__PURE__ */ React.createElement("div", { style: { minWidth: 0, ...narrow ? { gridColumn: "1 / -1", gridRow: 2 } : {} } }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SANS, fontSize: 13, fontWeight: 600, color: x.s.party ? pc(x.s.party, !0) : T.text } }, x.cand || x.p.name, x.s.party && x.s.party !== "?" ? /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 400, color: T.text3 } }, " (", x.s.party, ")") : null, /* @__PURE__ */ React.createElement(SbaBadge, null), x.s.ours && r && r.v1 + r.v2 > 0 ? /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO, fontSize: 12, fontWeight: 500, color: T.text2, marginLeft: 8 } }, x.s.ours[1].toFixed(1), "%") : null), x.s.opp && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: T.text3, marginTop: 2 } }, "vs. ", x.s.opp[0], x.s.opp[2] && x.s.opp[2] !== "?" ? ` (${x.s.opp[2]})` : "", r && r.v1 + r.v2 > 0 ? ` \xB7 ${x.s.opp[1].toFixed(1)}%` : "")),
-            !narrow && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12.5, color: T.text2 } }, fmtM2(x.s.margin, x.s.k), runoff(x) && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.amber, marginTop: 2 } }, "No one above 50% yet \u2014 a runoff if it stays that way"), x.chance != null && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.text3, marginTop: 2 }, title: "Estimate from the county model, not a race call" }, chanceTxt(x.chance))),
-            /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3, ...narrow ? { gridColumn: 2, gridRow: 1 } : {} } }, /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SANS, fontSize: 11, fontWeight: 700, color: col, border: `1px solid ${col}`, borderRadius: 12, padding: "2px 9px", whiteSpace: "nowrap" } }, lab), narrow && fmtM2(x.s.margin, x.s.k) && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: T.text3 } }, fmtM2(x.s.margin, x.s.k)), narrow && runoff(x) && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10.5, color: T.amber } }, "Under 50% \u2014 runoff possible"))
+            /* @__PURE__ */ React.createElement("div", { style: { minWidth: 0, ...narrow ? { gridColumn: "1 / -1", gridRow: 2 } : {} } }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SANS, fontSize: 13, fontWeight: 600, color: x.s.party ? pc(x.s.party, !0) : T.text } }, x.race ? x.cand : x.p.name, x.s.party && x.s.party !== "?" ? /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 400, color: T.text3 } }, " (", x.s.party, ")") : null, /* @__PURE__ */ React.createElement(SbaBadge, null), x.s.ours && r && r.v1 + r.v2 > 0 ? /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO, fontSize: 12, fontWeight: 500, color: T.text2, marginLeft: 8 } }, (x.s.ours[1] || 0).toFixed(1), "%") : null), !x.race && x.s.k === "review" && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: T.text3, marginTop: 2 } }, x.review === "lastname" ? "Only a candidate with the same last name is on that ballot" : x.review === "ambiguous" ? "Matches more than one race \u2014 being checked" : "Not found on that ballot in the feed"), x.s.opp && !x.s.multi && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: T.text3, marginTop: 2 } }, "vs. ", x.s.opp[0], x.s.opp[2] && x.s.opp[2] !== "?" ? ` (${x.s.opp[2]})` : "", r && r.v1 + r.v2 > 0 ? ` \xB7 ${(x.s.opp[1] || 0).toFixed(1)}%` : "")),
+            !narrow && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12.5, color: T.text2 } }, fmtM2(x.s.margin, x.s.k, x.s), runoff(x) && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.amber, marginTop: 2 } }, "No one above 50% yet \u2014 a runoff if it stays that way"), x.chance != null && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.text3, marginTop: 2 }, title: "Estimate from the county model, not a race call" }, chanceTxt(x.chance))),
+            /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3, ...narrow ? { gridColumn: 2, gridRow: 1 } : {} } }, /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SANS, fontSize: 11, fontWeight: 700, color: col, border: `1px solid ${col}`, borderRadius: 12, padding: "2px 9px", whiteSpace: "nowrap" } }, lab), narrow && fmtM2(x.s.margin, x.s.k, x.s) && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: T.text3 } }, fmtM2(x.s.margin, x.s.k, x.s)), narrow && runoff(x) && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10.5, color: T.amber } }, "Under 50% \u2014 runoff possible"))
           ), isOpen && r && /* @__PURE__ */ React.createElement(RaceRow, { r, hist: hist[r.id], open: !0, onToggle: () => setOpen(null), calledAt: calledAt[r.id] }));
         })))) : /* @__PURE__ */ React.createElement("div", { className: "en-pad", style: { padding: "28px 24px", color: T.text3, fontSize: 13 } }, "The SBA candidate list hasn't been added yet.");
       }
@@ -1945,11 +1984,11 @@
         return /* @__PURE__ */ React.createElement("div", { role: "tooltip", style: { position: "fixed", left, top: below ? tip.y + 18 : void 0, bottom: below ? void 0 : window.innerHeight - tip.y + 14, width: W, zIndex: 200, background: T.nav, color: "#fff", borderRadius: 8, padding: "10px 12px", boxShadow: "0 8px 24px #0f1a2e55", fontFamily: SANS, fontSize: 12, lineHeight: 1.45, pointerEvents: "none" } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, fontSize: 12.5 } }, STATE_NAMES[ab] || ab, " ", name), info ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { color: T.gold, fontWeight: 700, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase", marginTop: 4 } }, info[0]), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 2 } }, info[1]), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6, fontSize: 10, opacity: 0.6 } }, "A yes vote \xB7 Source: ", MEASURE_SRC)) : /* @__PURE__ */ React.createElement("div", { style: { marginTop: 4, opacity: 0.8 } }, "No summary on file (usually a local measure) \u2014 open the race for a Ballotpedia link."));
       }
       const GRID = "52px minmax(160px,1.2fr) minmax(210px,1fr) 76px 72px 118px", GRID_C = "44px minmax(0,1.1fr) minmax(0,1fr) 56px 88px", raceEq = (a, b) => a === b || a.id === b.id && a.a1 === b.a1 && a.a2 === b.a2 && a.v1 === b.v1 && a.v2 === b.v2 && a.rpt === b.rpt && a.called === b.called && a.shift === b.shift && a.flip === b.flip && a.poll1 === b.poll1 && a.poll2 === b.poll2 && (a.polls || []).length === (b.polls || []).length && a.turnout === b.turnout && a.c1 === b.c1 && a.c2 === b.c2 && (a.prior && a.prior.id) === (b.prior && b.prior.id) && (a.others || []).length === (b.others || []).length && (a.priorYears || []).length === (b.priorYears || []).length, RaceRow = React.memo(function({ r, hist, open, onToggle, calledAt, compact, pinned, onPin }) {
-        const [showHist, setShowHist] = useState(!1), [showTop, setShowTop] = useState(!1), narrow = React.useContext(NarrowCtx), est = React.useContext(EstCtx), ex = est && est.exp[r.id], pr = est && est.proj.byId[r.id], sbaNames = (React.useContext(SbaCtx) || /* @__PURE__ */ new Map()).get(r.id), isSba = (n) => !!sbaNames && sbaNames.some((x) => nameMatch(x, n) > 0);
+        const [showHist, setShowHist] = useState(!1), [showTop, setShowTop] = useState(!1), narrow = React.useContext(NarrowCtx), est = React.useContext(EstCtx), ex = est && est.exp[r.id], pr = est && est.proj.byId[r.id], sbaNames = (React.useContext(SbaCtx) || /* @__PURE__ */ new Map()).get(r.id), isSba = (n) => !!sbaNames && sbaNames.includes(n);
         useEffect(() => {
           open || (setShowHist(!1), setShowTop(!1));
         }, [open]);
-        const m = marginOf(r), lead = leaderOf(r), dec = isDecided(r), ballot = r.level === "Ballot Measure", hasPoll = r.poll1 != null && r.poll2 != null, pm = hasPoll ? r.poll1 - r.poll2 : null, err = hasPoll ? Math.abs(m - pm) : null, errC = errColor(err);
+        const m = marginOf(r), lead = leaderOf(r), dec = isDecided(r), ballot = r.level === "Ballot Measure", hasPoll = !1, pm = hasPoll ? r.poll1 - r.poll2 : null, err = hasPoll ? Math.abs(m - pm) : null, errC = errColor(err);
         return /* @__PURE__ */ React.createElement("div", { id: `row-${r.id}`, style: { borderBottom: `1px solid ${T.border}`, background: open ? T.hover : "transparent", ...sbaNames ? { boxShadow: `inset 3px 0 0 ${T.gold}` } : {} }, onMouseEnter: (e) => {
           open || (e.currentTarget.style.background = T.hover);
         }, onMouseLeave: (e) => {
@@ -1971,7 +2010,7 @@
         })(), ballot && (() => {
           const mi = measureInfo(r);
           return /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 12, padding: "8px 10px", background: T.surface, border: `1px solid ${T.border}`, borderRadius: 8, fontSize: 12.5, color: T.text2, lineHeight: 1.45 } }, mi ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("b", { style: { color: T.goldText, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" } }, mi[0]), " \xB7 ", mi[1], " ", /* @__PURE__ */ React.createElement("a", { href: mi[2] || measureSearch(r), target: "_blank", rel: "noreferrer", onClick: (e) => e.stopPropagation(), style: { color: T.goldText, fontWeight: 600, whiteSpace: "nowrap" } }, "Ballotpedia \u2197")) : /* @__PURE__ */ React.createElement(React.Fragment, null, "No summary on file for this measure. ", /* @__PURE__ */ React.createElement("a", { href: measureSearch(r), target: "_blank", rel: "noreferrer", onClick: (e) => e.stopPropagation(), style: { color: T.goldText, fontWeight: 600 } }, "Look it up on Ballotpedia \u2197")));
-        })(), [[r.c1, r.a1, r.v1, r.p1], [r.c2, r.a2, r.v2, r.p2]].map(([n, p, v, pt]) => /* @__PURE__ */ React.createElement("div", { key: n, style: { marginBottom: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 4 } }, /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SANS, fontSize: 13, color: pc(pt, !0), fontWeight: 500 } }, n, " ", /* @__PURE__ */ React.createElement("span", { style: { color: T.text3, fontWeight: 400 } }, "(", pt, ")"), isSba(n) && /* @__PURE__ */ React.createElement(SbaBadge, null)), /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO, fontSize: 12, color: T.text2 } }, p.toFixed(1), "% \xB7 ", fmtNum(v))), /* @__PURE__ */ React.createElement("div", { style: { height: 7, background: T.border, borderRadius: 4, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${p}%`, background: pc(pt), borderRadius: 4 } })))), r.others && r.others.length > 0 && r.others.map((o) => /* @__PURE__ */ React.createElement("div", { key: o.name, style: { marginBottom: 8 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 4 } }, /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SANS, fontSize: 13, color: pc(o.party, !0), fontWeight: 500 } }, o.name, " ", /* @__PURE__ */ React.createElement("span", { style: { color: T.text3, fontWeight: 400 } }, "(", o.party, ")")), /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO, fontSize: 12, color: T.text2 } }, o.pct.toFixed(1), "% \xB7 ", fmtNum(o.votes))), /* @__PURE__ */ React.createElement("div", { style: { height: 7, background: T.border, borderRadius: 4, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${o.pct}%`, background: pc(o.party), borderRadius: 4 } })))), hist && hist.length > 1 && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SANS, fontSize: 11, color: T.text3, marginBottom: 4 } }, "Margin over the night"), /* @__PURE__ */ React.createElement(Sparkline, { pts: hist, w: 360, h: 56, color: pc(lead, !0) }))), /* @__PURE__ */ React.createElement("div", { style: { background: T.surface, border: `1px solid ${T.border}`, borderRadius: 6, padding: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, alignContent: "start" } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SANS, fontSize: 11, color: T.text3 } }, "Reporting"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: MONO, fontSize: 22, fontWeight: 700, color: r.rpt >= 100 ? T.green : T.text } }, r.rpt, "%")), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SANS, fontSize: 11, color: T.text3 } }, "Votes counted"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: MONO, fontSize: 22, fontWeight: 700 } }, fmtNum(counted(r)))), hasPoll ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SANS, fontSize: 11, color: T.text3 } }, "GPS final poll"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: MONO, fontSize: 16, fontWeight: 600, color: pc(pm >= 0 ? r.p1 : r.p2, !0) } }, pm >= 0 ? r.p1 : r.p2, "+", Math.abs(pm).toFixed(1)), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: MONO, fontSize: 10, color: T.text3 } }, r.poll1, "\u2013", r.poll2)), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SANS, fontSize: 11, color: T.text3 } }, "Margin error"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: MONO, fontSize: 16, fontWeight: 600, color: errC } }, err.toFixed(1), " pt"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SANS, fontSize: 10, color: T.text3 } }, pm > 0 && m > 0 || pm < 0 && m < 0 ? "Direction right" : "Direction missed"))) : null), /* @__PURE__ */ React.createElement("div", { style: { gridColumn: "1/-1", display: "flex", flexDirection: "column", gap: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
+        })(), [[r.c1, r.a1, r.v1, r.p1], [r.c2, r.a2, r.v2, r.p2]].map(([n, p, v, pt]) => /* @__PURE__ */ React.createElement("div", { key: n, style: { marginBottom: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 4 } }, /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SANS, fontSize: 13, color: pc(pt, !0), fontWeight: 500 } }, n, " ", /* @__PURE__ */ React.createElement("span", { style: { color: T.text3, fontWeight: 400 } }, "(", pt, ")"), isSba(n) && /* @__PURE__ */ React.createElement(SbaBadge, null)), /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO, fontSize: 12, color: T.text2 } }, p.toFixed(1), "% \xB7 ", fmtNum(v))), /* @__PURE__ */ React.createElement("div", { style: { height: 7, background: T.border, borderRadius: 4, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${p}%`, background: pc(pt), borderRadius: 4 } })))), r.others && r.others.length > 0 && r.others.map((o) => /* @__PURE__ */ React.createElement("div", { key: o.name, style: { marginBottom: 8 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 4 } }, /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SANS, fontSize: 13, color: pc(o.party, !0), fontWeight: 500 } }, o.name, " ", /* @__PURE__ */ React.createElement("span", { style: { color: T.text3, fontWeight: 400 } }, "(", o.party, ")")), /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO, fontSize: 12, color: T.text2 } }, o.pct.toFixed(1), "% \xB7 ", fmtNum(o.votes))), /* @__PURE__ */ React.createElement("div", { style: { height: 7, background: T.border, borderRadius: 4, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${o.pct}%`, background: pc(o.party), borderRadius: 4 } })))), hist && hist.length > 1 && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SANS, fontSize: 11, color: T.text3, marginBottom: 4 } }, "Margin over the night"), /* @__PURE__ */ React.createElement(Sparkline, { pts: hist, w: 360, h: 56, color: pc(lead, !0) }))), /* @__PURE__ */ React.createElement("div", { style: { background: T.surface, border: `1px solid ${T.border}`, borderRadius: 6, padding: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, alignContent: "start" } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SANS, fontSize: 11, color: T.text3 } }, "Reporting"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: MONO, fontSize: 22, fontWeight: 700, color: r.rpt >= 100 ? T.green : T.text } }, r.rpt, "%")), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SANS, fontSize: 11, color: T.text3 } }, "Votes counted"), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: MONO, fontSize: 22, fontWeight: 700 } }, fmtNum(counted(r)))), null), /* @__PURE__ */ React.createElement("div", { style: { gridColumn: "1/-1", display: "flex", flexDirection: "column", gap: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
           e.stopPropagation(), setShowHist((s) => !s), setShowTop(!1);
         }, style: { fontFamily: SANS, fontSize: 12, fontWeight: 600, padding: "6px 12px", borderRadius: 6, border: `1px solid ${T.border2}`, background: showHist ? T.accent + "16" : "transparent", color: showHist ? T.accent : T.text2, cursor: "pointer" } }, showHist ? "Hide past generals" : "Compare to past generals"), (r.level === "State Legislative" || r.type === "House") && /* @__PURE__ */ React.createElement("button", { onClick: (e) => {
           e.stopPropagation(), setShowTop((s) => !s), setShowHist(!1);
@@ -2862,12 +2901,12 @@
             const pr0 = isPres ? priorFor(r) : pickPrior(priors[r.id], cmpYear, r), pr = pr0 && !priorOk(r, pr0) ? null : pr0, unc = pr && (isUncontested(r) || isUncontested(pr));
             return pr && (o = { ...o, prior: pr, priorYears: isPres ? [2024] : Object.keys(priors[r.id].byYear).map(Number).sort((a, b) => b - a), shift: unc ? null : shiftOf(o, pr), turnout: unc ? null : turnoutRatio(o, pr), flip: !isPres && isDecided(o) && !isUncontested(o) && leaderOf(o) !== leaderOf(pr) && pr.v1 + pr.v2 > 0 && !runoffUnclear(o, pr) }), o;
           });
-        }, [races, pollRows, hideLocal, priors, cmpYear, pres24, base24]), sbaMatches = useMemo(() => SBA_PICKS.length ? sbaMatch(SBA_PICKS, all) : [], [all]), sbaByRace = useMemo(() => {
+        }, [races, pollRows, hideLocal, priors, cmpYear, pres24, base24]), sbaMatches = useMemo(() => SBA_PICKS.length ? sbaMatch(SBA_PICKS, all).filter((x) => !x.dup) : [], [all]), sbaByRace = useMemo(() => {
           const m = /* @__PURE__ */ new Map();
           return sbaMatches.forEach((x) => {
-            if (x.race) {
+            if (x.race && x.cand) {
               const a = m.get(x.race.id) || [];
-              a.push(x.p.name), m.set(x.race.id, a);
+              a.push(x.cand), m.set(x.race.id, a);
             }
           }), m;
         }, [sbaMatches]);
@@ -3124,7 +3163,7 @@
           return { key: r.id, party: wp, tip: r.level === "Ballot Measure" ? measureKey(r) : null, head: `${r.abbr} ${r.name}`, text: `${w} ${r.called ? "wins" : "leads at 100% in"} by ${Math.abs(marginOf(r)).toFixed(1)}${r.flip ? " \xB7 FLIP" : ""}`, time: fmtCall(calledAt[r.id]) };
         }), [all, calledAt, callTypes]), closest = useMemo(() => all.filter((r) => !isDecided(r) && r.a1 + r.a2 > 0 && r.a2 > 0).sort((a, b) => Math.abs(marginOf(a)) - Math.abs(marginOf(b))).slice(0, 6), [all]), filtered = useMemo(() => {
           let l = [...all];
-          if (level !== "all" && (l = l.filter((r) => r.level === level)), status === "called" ? l = l.filter(isDecided) : status === "open" ? l = l.filter((r) => !isDecided(r)) : status === "gps" && (l = l.filter((r) => r.poll1 != null)), search) {
+          if (level !== "all" && (l = l.filter((r) => r.level === level)), status === "called" ? l = l.filter(isDecided) : status === "open" && (l = l.filter((r) => !isDecided(r))), search) {
             const q = search.toLowerCase();
             l = l.filter((r) => [r.state, r.name, r.c1, r.c2, r.type].some((s) => s.toLowerCase().includes(q)));
           }
@@ -3232,25 +3271,7 @@
           if (!(r.v2 > 0 || r.a2 > 0)) return { r, label: label + " \xB7 unopposed", dr: null, unopp: !0 };
           const dr = r.p1 === "D" && r.p2 === "R" || r.p1 === "R" && r.p2 === "D" ? signedMargin(r) : null;
           return { r, label, dr };
-        }, pollTable = useMemo(() => {
-          if (!pollRows.length) return [];
-          const byState = {};
-          return races.forEach((r) => {
-            (byState[r.abbr] = byState[r.abbr] || []).push(r);
-          }), pollRows.map((p, i) => {
-            const pool = byState[p.abbr] || [];
-            let race = null;
-            if (p.key && (race = pool.find((r) => {
-              const rk = raceKeyOf(r);
-              return rk && rk.office === p.key.office && (rk.district || null) === (p.key.district || null);
-            }) || null), !race && !p.key) {
-              const q = p.raceName.toLowerCase().trim();
-              race = q && (pool.find((r) => r.name.toLowerCase() === q || (r.type || "").toLowerCase() === q) || pool.find((r) => r.name.toLowerCase().includes(q))) || null;
-            }
-            const s1 = race ? candShare(race, p.n1) : null, s2 = race ? candShare(race, p.n2) : null, status2 = race ? !p.n1 || !p.n2 || s1 && s2 ? "matched" : "names" : "missing", counted2 = race && race.v1 + race.v2 > 0, pm = (p.poll1 || 0) - (p.poll2 || 0), am = counted2 && s1 && s2 ? s1.pct - s2.pct : null, k = p.key, pseudo = !race && p.abbr && k && k.office ? { abbr: p.abbr, state: STATE_NAMES[p.abbr] || p.abbr, type: k.office, district: k.district || "", name: p.raceName, level: k.office === "House" || k.office === "Senate" ? "Federal" : k.office === "Ballot" ? "Ballot Measure" : /State (Senate|House)/.test(k.office) ? "State Legislative" : "Statewide", id: `poll-${i}` } : null, pdr = p.pp1 === "D" && p.pp2 === "R" ? pm : p.pp1 === "R" && p.pp2 === "D" ? -pm : null;
-            return { i, p, race, status: status2, s1, s2, pm, am, err: am == null ? null : am - pm, pdr, c24: cmpOf(race || pseudo, 2024), c22: cmpOf(race || pseudo, 2022) };
-          });
-        }, [pollRows, races, priors, pres24, base24, racesYr]), pollCmp = useMemo(() => {
+        }, pollTable = useMemo(() => [], [pollRows, races, priors, pres24, base24, racesYr]), pollCmp = useMemo(() => {
           const out = {};
           return [["c24", "2024"], ["c22", "2022"]].forEach(([k, y]) => {
             const xs = pollTable.filter((x) => x.pdr != null && x[k] && x[k].r && x[k].dr != null);
