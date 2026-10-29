@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261029124136">
+<meta name="build" content="20261029124725">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261029124136"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261029124725"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -1770,10 +1770,13 @@
         return picks.map((p, i) => {
           const key = `${p.st}|${String(p.type).toLowerCase()}|${p.dist || ""}|${nameToks(p.name).join(" ")}`, dup = seen.has(key);
           if (seen.set(key, 1), p.type === "Ballot Measure") {
-            const mk = (s) => String(s || "").toLowerCase().replace(/\b(constitutional|legislative|statewide|ballot|measure|initiated|referred|no\.?|number)\b/g, " ").split(/[^a-z0-9]+/).filter(Boolean), want = mk(p.measure), pool2 = all.filter((r) => r.abbr === p.st && r.level === "Ballot Measure" && !r.localMeasure && String(r.electionDate).startsWith("2026-11"));
+            const mk = (s) => String(s || "").toLowerCase().replace(/\b(constitutional|legislative|statewide|ballot|measure|initiated|referred|no\.?|number)\b/g, " ").split(/[^a-z0-9]+/).filter(Boolean), stWords = mk(STATE_NAMES[p.st] || "");
+            let want = mk(p.measure);
+            for (; want.length && stWords.length && stWords.every((w, k) => want[k] === w); ) want = want.slice(stWords.length);
+            const pool2 = all.filter((r) => r.abbr === p.st && r.level === "Ballot Measure" && !r.localMeasure && String(r.electionDate).startsWith("2026-11"));
             let hits2 = want.length ? pool2.filter((r) => {
               const n = mk(r.name);
-              return n.length >= want.length && want.every((w, k) => n[n.length - want.length + k] === w);
+              return want.length < 2 ? n.join(" ") === want.join(" ") : n.length >= want.length && want.every((w, k) => n[n.length - want.length + k] === w);
             }) : [];
             if (hits2.length > 1 && hits2.every((r) => mk(r.name).join(" ") === mk(hits2[0].name).join(" ")) && (hits2 = [hits2.slice().sort((a, b) => counted(b) - counted(a) || a.id - b.id)[0]]), hits2.length === 1) {
               const r = hits2[0], c = raceCands(r).find((x) => x[2] === p.side);
