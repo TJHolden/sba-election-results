@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261030003148">
+<meta name="build" content="20261030115205">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261030003148"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261030115205"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -69,11 +69,11 @@
   });
   var define_SBA_PICKS_default, init_define_SBA_PICKS = __esm({
     "<define:__SBA_PICKS__>"() {
-      define_SBA_PICKS_default = [];
+      define_SBA_PICKS_default = [{ st: "NY", type: "State House", dist: "11", name: "Kwani O'Pharrow" }, { st: "NY", type: "State House", dist: "21", name: "Judy Griffin" }, { st: "NY", type: "State House", dist: "99", name: "Christopher W. Eachus" }, { st: "NY", type: "State House", dist: "140", name: "William C. Conrad III" }, { st: "NY", type: "State House", dist: "135", name: "Jen Lunsford" }, { st: "NY", type: "State House", dist: "1", name: "Thomas J. Schiavoni" }, { st: "NY", type: "State House", dist: "96", name: "Patrick Carroll" }, { st: "NY", type: "State Senate", dist: "50", name: "Christopher J. Ryan" }, { st: "NY", type: "State Senate", dist: "52", name: "Lea Webb" }, { st: "NY", type: "State Senate", dist: "4", name: "Monica Martinez" }, { st: "NY", type: "State Senate", dist: "11", name: "Toby Ann Stavisky" }, { st: "NY", type: "State Senate", dist: "23", name: "Jessica Scarcella-Spanton" }, { st: "NY", type: "State Senate", dist: "41", name: "Michelle Hinchey" }, { st: "NY", type: "State Senate", dist: "42", name: "James Skoufis" }, { st: "MD", type: "State House", dist: "33B", name: "Chuck Cook" }, { st: "MD", type: "State House", dist: "38B", name: "Josh Hastings" }, { st: "MD", type: "State Senate", dist: "30", name: "Shaneka Henson" }, { st: "MD", type: "State Senate", dist: "34", name: "Mary-Dulaney James" }, { st: "MD", type: "State Senate", dist: "42", name: "Stephanie Popescu" }, { st: "IL", type: "State Senate", dist: "18", name: "Frances Ann Hurley" }, { st: "IL", type: "State House", dist: "84", name: "Saba Haider" }, { st: "IL", type: "State Senate", dist: "57", name: "Christopher Belt" }, { st: "IL", type: "State House", dist: "112", name: "Katie Stuart" }, { st: "IL", type: "State House", dist: "114", name: "George McClellan" }, { st: "GA", type: "State House", dist: "145", name: "Tangie Herring" }, { st: "GA", type: "State House", dist: "50", name: "Michelle Au" }, { st: "GA", type: "State House", dist: "137", name: "Debbie Buckner" }, { st: "AL", type: "State House", dist: "10", name: "Marilyn Lands" }, { st: "AL", type: "State House", dist: "68", name: "Thomas Jackson" }, { st: "AL", type: "State House", dist: "69", name: "Kelvin Lawrence" }];
     }
   });
   var require_app_src = __commonJS({
-    "../en/qa/app_src.jsx"(exports, module) {
+    "qa/app_src.jsx"(exports, module) {
       init_define_CLIENT();
       init_define_SBA_PICKS();
       const { useState, useEffect, useMemo, useRef, useLayoutEffect, useCallback } = React, SERIF = "'Source Serif 4', Georgia, serif", MONO = "'JetBrains Mono', ui-monospace, monospace", SANS = "'DM Sans', system-ui, sans-serif", T = {
