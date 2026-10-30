@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261029231123">
+<meta name="build" content="20261030003148">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261029231123"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261030003148"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -491,7 +491,12 @@
           localStorage.setItem(LS_PREFIX + k, JSON.stringify({ t: Date.now(), v }));
         } catch {
         }
-      }, detailCache = /* @__PURE__ */ new Map(), peekDetail = (id) => {
+      };
+      try {
+        Object.keys(localStorage).filter((k) => k.startsWith(LS_PREFIX + "dist:")).forEach((k) => localStorage.removeItem(k));
+      } catch {
+      }
+      const detailCache = /* @__PURE__ */ new Map(), peekDetail = (id) => {
         const hit = detailCache.get(id);
         return hit ? hit.d : null;
       };
@@ -1275,10 +1280,23 @@
         })));
       }
       const distLayers = () => CLIENT.districts && Object.keys(CLIENT.districts).length ? CLIENT.districts : null, distCache = /* @__PURE__ */ new Map();
+      function fixDistrictGeom(g) {
+        if (!g) return null;
+        const fixPoly = (rings) => (rings = (rings || []).filter((r) => Array.isArray(r) && r.length >= 4), rings.length ? (d3.geoArea({ type: "Polygon", coordinates: rings }) > 2 * Math.PI && (rings = rings.map((r) => r.slice().reverse())), d3.geoArea({ type: "Polygon", coordinates: rings }) > 2 * Math.PI && (rings = [rings[0].slice().reverse()].filter((r) => d3.geoArea({ type: "Polygon", coordinates: [r] }) <= 2 * Math.PI)), rings.length ? rings : null) : null);
+        if (g.type === "Polygon") {
+          const c = fixPoly(g.coordinates);
+          return c ? { type: "Polygon", coordinates: c } : null;
+        }
+        if (g.type === "MultiPolygon") {
+          const cs = (g.coordinates || []).map(fixPoly).filter(Boolean);
+          return cs.length ? { type: "MultiPolygon", coordinates: cs } : null;
+        }
+        return null;
+      }
       function loadDistrictShapes(url) {
         if (distCache.has(url)) return distCache.get(url);
         const p = (async () => {
-          const key = "dist:" + url, hit = lsGet(key, 30 * 864e5);
+          const key = "dist2:" + url, hit = lsGet(key, 30 * 864e5);
           if (hit && hit.features && hit.features.length) return hit;
           const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 2e4);
           try {
@@ -1286,11 +1304,13 @@
             if (!res.ok) throw new Error("HTTP " + res.status);
             const j = await res.json();
             if (!j || !Array.isArray(j.features) || !j.features.length) throw new Error("no districts");
-            const fc = { type: "FeatureCollection", features: j.features.filter((f) => f.geometry).map((f) => {
+            const fc = { type: "FeatureCollection", features: j.features.map((f) => {
               var _a, _b, _c, _d;
+              const g = fixDistrictGeom(f.geometry);
+              if (!g) return null;
               const raw = String((_d = (_c = (_b = (_a = f.properties.BASENAME) != null ? _a : f.properties.DISTRICT) != null ? _b : f.properties.DIST) != null ? _c : f.properties.district) != null ? _d : "").trim();
-              return { type: "Feature", geometry: f.geometry, properties: { d: /^\d+$/.test(raw) ? String(+raw) : raw } };
-            }) };
+              return { type: "Feature", geometry: g, properties: { d: /^\d+$/.test(raw) ? String(+raw) : raw } };
+            }).filter(Boolean) };
             return lsSet(key, fc), fc;
           } finally {
             clearTimeout(tm);
@@ -1307,7 +1327,19 @@
         return lay == null ? null : `${TIGER}${lay}/query?where=STATE%3D%27${fp}%27&outFields=BASENAME&outSR=4326&f=geojson&maxAllowableOffset=0.002&geometryPrecision=4`;
       }, ZOOM_BOX = { UT: { name: "Wasatch Front", box: [[-112.25, 40], [-111.55, 41.35]] } };
       function DistrictMap({ type, abbr, races, hover, setHover, onPick, highlightId, view, fallback, left, inline }) {
-        const url = distUrlFor(type, abbr), [fc, setFc] = useState(null), [err, setErr] = useState(!1), [zoom, setZoom] = useState(!1);
+        const url = distUrlFor(type, abbr), [fc, setFc] = useState(null), [err, setErr] = useState(!1), [zoom, setZoom] = useState(!1), [asGrid, setAsGridS] = useState(() => {
+          try {
+            return localStorage.getItem(LS_PREFIX + "distView") === "grid";
+          } catch {
+            return !1;
+          }
+        }), setAsGrid = (v) => {
+          setAsGridS(v);
+          try {
+            localStorage.setItem(LS_PREFIX + "distView", v ? "grid" : "map");
+          } catch {
+          }
+        };
         useEffect(() => {
           let on = !0;
           if (setFc(null), setErr(!1), !!url)
@@ -1339,8 +1371,8 @@
         if (!url || err) return fallback;
         if (!fc) return /* @__PURE__ */ React.createElement("div", { style: { color: T.text3, fontSize: 12 } }, "Loading district map\u2026");
         if (!good || fc.features.length < 2) return fallback;
-        const small = fc.features.length > 40 && !zoom;
-        return /* @__PURE__ */ React.createElement("div", { style: { width: "100%", height: inline ? "auto" : "100%", minHeight: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 } }, zb && fc.features.length > 8 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6 } }, /* @__PURE__ */ React.createElement(Pill, { active: !zoom, onClick: () => setZoom(!1) }, "Statewide"), /* @__PURE__ */ React.createElement(Pill, { active: zoom, onClick: () => setZoom(!0) }, zb.name)), /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${W} ${H}`, style: inline ? { width: "100%", height: "auto", flex: "none", display: "block" } : { width: "100%", flex: "1 1 0", minHeight: 0, display: "block" }, className: "en-distmap" }, /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("pattern", { id: "dhm", width: "5", height: "5", patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, /* @__PURE__ */ React.createElement("line", { x1: "0", y1: "0", x2: "0", y2: "5", stroke: "#00000026", strokeWidth: "1.6" })), /* @__PURE__ */ React.createElement("pattern", { id: "doff", width: "6", height: "6", patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, /* @__PURE__ */ React.createElement("rect", { width: "6", height: "6", fill: "#ffffff" }), /* @__PURE__ */ React.createElement("line", { x1: "0", y1: "0", x2: "0", y2: "6", stroke: "#c9c4b8", strokeWidth: "1.2" })), /* @__PURE__ */ React.createElement("clipPath", { id: "dclip" }, /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: W, height: H }))), /* @__PURE__ */ React.createElement("g", { clipPath: "url(#dclip)" }, fc.features.map((f) => {
+        const small = fc.features.length > 40 && !zoom, switcher = /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", alignItems: "center" } }, /* @__PURE__ */ React.createElement(Pill, { active: !asGrid, onClick: () => setAsGrid(!1) }, "Map"), /* @__PURE__ */ React.createElement(Pill, { active: asGrid, onClick: () => setAsGrid(!0) }, "Grid"), !asGrid && zb && fc.features.length > 8 && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { style: { width: 1, height: 18, background: T.border2, margin: "0 4px" } }), /* @__PURE__ */ React.createElement(Pill, { active: !zoom, onClick: () => setZoom(!1) }, "Statewide"), /* @__PURE__ */ React.createElement(Pill, { active: zoom, onClick: () => setZoom(!0) }, zb.name)));
+        return asGrid ? /* @__PURE__ */ React.createElement("div", { style: { width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 } }, switcher, /* @__PURE__ */ React.createElement("div", { style: { width: "100%" } }, fallback), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10.5, color: T.text4 } }, "One square per seat, in district order")) : /* @__PURE__ */ React.createElement("div", { style: { width: "100%", height: inline ? "auto" : "100%", minHeight: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 } }, switcher, /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${W} ${H}`, style: inline ? { width: "100%", height: "auto", flex: "none", display: "block" } : { width: "100%", flex: "1 1 0", minHeight: 0, display: "block" }, className: "en-distmap" }, /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("pattern", { id: "dhm", width: "5", height: "5", patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, /* @__PURE__ */ React.createElement("line", { x1: "0", y1: "0", x2: "0", y2: "5", stroke: "#00000026", strokeWidth: "1.6" })), /* @__PURE__ */ React.createElement("pattern", { id: "doff", width: "6", height: "6", patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, /* @__PURE__ */ React.createElement("rect", { width: "6", height: "6", fill: "#ffffff" }), /* @__PURE__ */ React.createElement("line", { x1: "0", y1: "0", x2: "0", y2: "6", stroke: "#c9c4b8", strokeWidth: "1.2" })), /* @__PURE__ */ React.createElement("clipPath", { id: "dclip" }, /* @__PURE__ */ React.createElement("rect", { x: "0", y: "0", width: W, height: H }))), /* @__PURE__ */ React.createElement("g", { clipPath: "url(#dclip)" }, fc.features.map((f) => {
           const r = byNum[f.properties.d], has = r && r.a1 + r.a2 > 0, dec = r && isDecided(r), lead = r && leaderOf(r), sw = view === "swing", lv = view === "left" && left, lx = lv && r && left[r.id], lmx = lv ? Math.max(1, ...Object.values(left).map((v) => v.R)) : 1, col = r ? lv ? lx ? leftColor(lx.R / lmx) : T.border2 : sw ? r.shift != null && has ? swingColor(r.shift) : T.border2 : has ? pc(lead) : T.border2 : "url(#doff)", fillC = !r || sw || lv || dec ? col : col + "77", isH = r && (hover === r.id || highlightId === r.id);
           return /* @__PURE__ */ React.createElement("g", { key: f.properties.d, style: { cursor: r ? "pointer" : "default" }, onMouseEnter: () => r && setHover(r.id), onMouseLeave: () => setHover(null), onClick: () => r && onPick(r) }, /* @__PURE__ */ React.createElement("path", { d: path(f), fill: fillC, stroke: isH ? T.gold : T.nav, strokeWidth: isH ? 2.4 : 0.7, strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("title", null, r ? `${r.name}${has ? ` \xB7 ${lead === "Y" ? "Yes" : lead === "N" ? "No" : lead}+${Math.abs(marginOf(r)).toFixed(1)}` : " \xB7 no votes yet"}` : `District ${f.properties.d} \xB7 not on the ballot this year`)), r && !dec && has && !sw && !lv && /* @__PURE__ */ React.createElement("path", { d: path(f), fill: "url(#dhm)", style: { pointerEvents: "none" } }));
         }), !small && /* @__PURE__ */ React.createElement("g", { style: { pointerEvents: "none" } }, fc.features.map((f) => {
@@ -1358,7 +1390,7 @@
           return na - nb || a.name.localeCompare(b.name);
         }), [races]), n = sorted.length, cols = Math.max(4, Math.ceil(Math.sqrt(n * 1.6))), rows = Math.ceil(n / cols), S = Math.max(22, Math.min(44, Math.floor(540 / cols) - 4)), G = 4, W = cols * (S + G), H = rows * (S + G);
         return /* @__PURE__ */ React.createElement("svg", { viewBox: `0 0 ${W} ${H}`, style: { width: "100%", height: "auto", display: "block", maxHeight: 420 } }, /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("pattern", { id: "dh", width: "5", height: "5", patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, /* @__PURE__ */ React.createElement("line", { x1: "0", y1: "0", x2: "0", y2: "5", stroke: "#00000026", strokeWidth: "1.6" }))), sorted.map((r, i) => {
-          const x = i % cols * (S + G), y = Math.floor(i / cols) * (S + G), dec = isDecided(r), lead = leaderOf(r), has = r.a1 + r.a2 > 0, sw = view === "swing", lv = view === "left" && left, lx = lv && left[r.id], lmx = lv ? Math.max(1, ...Object.values(left).map((v) => v.R)) : 1, col = lv ? lx ? leftColor(lx.R / lmx) : T.border2 : sw ? r.shift != null && has ? swingColor(r.shift) : T.surface : has ? pc(lead) : T.border2, fillC = lv || sw || dec ? col : col + "77", pale = (lv ? lx && lx.R / lmx > 0.45 ? "#fff" : T.nav : !has || sw && r.shift == null ? T.nav : inkOn(fillC)) !== "#fff", label = (r.district || r.name).replace(/^(HD|SD|AD|LD|CD)-?/i, "").replace(/^.*?(\d+)$/, "$1").slice(0, 4), isH = hover === r.id || highlightId === r.id;
+          const x = i % cols * (S + G), y = Math.floor(i / cols) * (S + G), dec = isDecided(r), lead = leaderOf(r), has = r.a1 + r.a2 > 0, sw = view === "swing", lv = view === "left" && left, lx = lv && left[r.id], lmx = lv ? Math.max(1, ...Object.values(left).map((v) => v.R)) : 1, col = lv ? lx ? leftColor(lx.R / lmx) : T.border2 : sw ? r.shift != null && has ? swingColor(r.shift) : T.surface : has ? pc(lead) : T.border2, fillC = lv || sw || dec ? col : col + "77", pale = (lv ? lx && lx.R / lmx > 0.45 ? "#fff" : T.nav : !has || sw && r.shift == null ? T.nav : inkOn(fillC)) !== "#fff", label = (r.district || r.name).replace(/^(HD|SD|AD|LD|CD)-?/i, "").replace(/^.*?(\d+)$/, "$1").replace(/^0+(?=\d)/, "").slice(0, 4), isH = hover === r.id || highlightId === r.id;
           return /* @__PURE__ */ React.createElement("g", { key: r.id, transform: `translate(${x},${y})`, style: { cursor: "pointer" }, onMouseEnter: () => setHover(r.id), onMouseLeave: () => setHover(null), onClick: () => onPick(r) }, /* @__PURE__ */ React.createElement("rect", { width: S, height: S, rx: 4, fill: fillC, stroke: isH ? T.gold : T.nav, strokeWidth: isH ? 2.5 : 0.9 }), !dec && has && !lv && /* @__PURE__ */ React.createElement("rect", { width: S, height: S, rx: 4, fill: "url(#dh)" }), (() => {
             const arrow = sw && has && r.shift != null && Math.abs(r.shift) >= 0.5 && S > 30;
             return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("text", { x: S / 2, y: arrow ? S * 0.36 : S / 2 + (S > 30 ? -2 : 4), textAnchor: "middle", fontFamily: MONO, fontSize: S > 30 ? 11 : 9, fontWeight: 700, fill: pale ? T.nav : "#fff" }, label), S > 30 && (has || lv) && /* @__PURE__ */ React.createElement("text", { x: S / 2, y: arrow ? S * 0.6 : S / 2 + 11, textAnchor: "middle", fontFamily: MONO, fontSize: 8, fill: pale ? T.nav : "#fff", opacity: 0.85 }, lv ? lx ? kfmtVotes(lx.R) : "\u2014" : sw ? r.shift != null ? `${r.shift >= 0 ? "D" : "R"}+${Math.abs(r.shift) < 0.5 ? "<1" : Math.abs(r.shift).toFixed(0)}` : "\u2014" : `${lead === "Y" ? "Yes" : lead === "N" ? "No" : lead}+${Math.abs(marginOf(r)) < 0.5 ? "<1" : Math.abs(marginOf(r)).toFixed(0)}`), arrow && /* @__PURE__ */ React.createElement(ShiftArrow, { x: S / 2 + (r.shift > 0 ? 1 : -1) * Math.min(S * 0.3, (6 + Math.abs(r.shift) * 2.2) * 0.5) / 2, y: S * 0.84, sh: r.shift, k: 0.5, max: S * 0.6 }));
