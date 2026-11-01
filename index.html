@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261031205758">
+<meta name="build" content="20261031205826">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261031205758"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261031205826"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -2742,20 +2742,20 @@
         })), !Object.keys(out).length && lastErr && !any404) throw lastErr;
         !out.inperson && (out.in_person || out["in-person"]) && (out.inperson = out.in_person || out["in-person"]);
         const inp = out.inperson, hasTotal = out.total || out.cast;
-        if (out.returned && inp && !hasTotal) {
+        if ((out.returned || inp) && !hasTotal) {
           const regions = {}, add = (dst, g) => {
             g && ["D", "R", "npa", "other", "unspec", "total"].forEach((k) => {
               dst[k] = (dst[k] || 0) + (g[k] || 0);
             });
-          };
-          (/* @__PURE__ */ new Set([...Object.keys(out.returned.regions), ...Object.keys(inp.regions)])).forEach((a) => {
+          }, R = out.returned;
+          (/* @__PURE__ */ new Set([...Object.keys((R || {}).regions || {}), ...Object.keys((inp || {}).regions || {})])).forEach((a) => {
             const g = { D: 0, R: 0, npa: 0, other: 0, unspec: 0, total: 0 };
-            add(g, out.returned.regions[a]), add(g, inp.regions[a]), g.hasParty = g.D + g.R > 0, g.share = g.hasParty ? (g.D - g.R) / (g.D + g.R) : null, regions[a] = g;
+            add(g, R && R.regions[a]), add(g, inp && inp.regions[a]), g.hasParty = g.D + g.R > 0, g.share = g.hasParty ? (g.D - g.R) / (g.D + g.R) : null, regions[a] = g;
           });
           const t = { D: 0, R: 0, npa: 0, other: 0, unspec: 0, total: 0 };
-          add(t, out.returned.total), add(t, inp.total), t.hasParty = t.D + t.R > 0, t.share = t.hasParty ? (t.D - t.R) / (t.D + t.R) : null, out.total_early = { regions, total: t, date: out.returned.date || inp.date, name: "Total early vote (mail returned + in person)", derived: !0 };
+          add(t, R && R.total), add(t, inp && inp.total), t.hasParty = t.D + t.R > 0, t.share = t.hasParty ? (t.D - t.R) / (t.D + t.R) : null, out.total_early = { regions, total: t, date: R && R.date || inp && inp.date, name: inp ? "Total early vote (mail returned + in person)" : "Total early vote", derived: !0 };
         }
-        const KEEP = /* @__PURE__ */ new Set(["total_early", "returned", "inperson", "requested"]);
+        const KEEP = /* @__PURE__ */ new Set(["total_early", "requested"]);
         return Object.keys(out).forEach((k) => {
           KEEP.has(k) || delete out[k];
         }), out;
