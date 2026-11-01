@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261031211826">
+<meta name="build" content="20261031211951">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261031211826"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261031211951"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -3138,7 +3138,27 @@
         useEffect(() => {
           splashRef.current = showCountdown;
         }, [showCountdown]);
-        const initialHash = useMemo(() => ONLY ? null : parseHash(typeof location != "undefined" ? location.hash : ""), []), [tab, setTab] = useState((initialHash == null ? void 0 : initialHash.tab) || (ONLY ? /^#races$/i.test(location.hash) ? "sba" : /^#early$/i.test(location.hash) ? "early" : "state" : CLIENT.first ? "sba" : "results")), tabRef = useRef(tab);
+        const initialHash = useMemo(() => ONLY ? null : parseHash(typeof location != "undefined" ? location.hash : ""), []);
+        useEffect(() => {
+          if (ONLY) return;
+          let cancel = null;
+          const go = () => {
+            try {
+              loadDistrictShapes(NAT_CD_URL).catch(() => {
+              });
+            } catch {
+            }
+          };
+          if (typeof requestIdleCallback == "function") {
+            const id = requestIdleCallback(go, { timeout: 6e3 });
+            cancel = () => cancelIdleCallback(id);
+          } else {
+            const t = setTimeout(go, 2500);
+            cancel = () => clearTimeout(t);
+          }
+          return () => cancel && cancel();
+        }, []);
+        const [tab, setTab] = useState((initialHash == null ? void 0 : initialHash.tab) || (ONLY ? /^#races$/i.test(location.hash) ? "sba" : /^#early$/i.test(location.hash) ? "early" : "state" : CLIENT.first ? "sba" : "results")), tabRef = useRef(tab);
         useEffect(() => {
           tabRef.current = tab;
         }, [tab]);
