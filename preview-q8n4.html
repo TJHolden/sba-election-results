@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261101003017">
+<meta name="build" content="20261101003208">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261101003017"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261101003208"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -2292,9 +2292,9 @@
         }, legDial = () => {
           const sen = chamber("State Senate"), hou = chamber("State House"), rings = [], center = [], lead = (list) => {
             const d = list.filter((x) => x.race.called && leaderOf(x.race) === "D").length, r = list.filter((x) => x.race.called && leaderOf(x.race) === "R").length;
-            return { value: `${d}\u2013${r}`, color: d > r ? T.demB : r > d ? T.repB : T.text3 };
+            return { value: `${d} D \xB7 ${r} R`, color: d > r ? T.demB : r > d ? T.repB : T.text3 };
           }, cnt = (list) => `${list.filter((x) => counted2(x)).length} of ${list.length} counting`;
-          return sen.length && (rings.push({ label: `Senate \xB7 ${sen.length}`, segs: legSegs(sen), note: cnt(sen) }), center.push({ label: "Senate", ...lead(sen) })), hou.length && (rings.push({ label: `House \xB7 ${hou.length}`, segs: legSegs(hou), note: cnt(hou) }), center.push({ label: "House", ...lead(hou) })), rings.length ? /* @__PURE__ */ React.createElement(StackedGauge, { rings, center }) : null;
+          return sen.length && (rings.push({ label: `Senate \xB7 ${sen.length}`, segs: legSegs(sen), note: cnt(sen) }), center.push({ label: "Senate called", ...lead(sen) })), hou.length && (rings.push({ label: `House \xB7 ${hou.length}`, segs: legSegs(hou), note: cnt(hou) }), center.push({ label: "House called", ...lead(hou) })), rings.length ? /* @__PURE__ */ React.createElement(StackedGauge, { rings, center }) : null;
         }, chamberDial = (label, list) => {
           if (!list.length) return null;
           const c = (p) => list.filter((x) => x.race.called && leaderOf(x.race) === p).length, l = (p) => list.filter((x) => !x.race.called && counted2(x) && leaderOf(x.race) === p).length, cd = c("D"), cr = c("R"), ld = l("D"), lr = l("R"), none = Math.max(0, list.length - cd - cr - ld - lr), segs = [
