@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261101003208">
+<meta name="build" content="20261101003319">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261101003208"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261101003319"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -1926,7 +1926,7 @@
         const b = baselineDR(r, base24), ex = expectedVote(r, base24, fy), E = ex && ex.E || (piece && piece.p ? piece.p[2] : null), mp = multiParty(r);
         return [{ c: "all", whole: !0, b, s1: null, s2: null, E, C: counted(r), Dv: mp ? partyVotes(r, "D") : votesOf(r, "D"), Rv: mp ? partyVotes(r, "R") : votesOf(r, "R"), rpt: r.rpt }];
       }
-      function PropGauge({ segs, marker, markerLabel, caption, endL, endR, endLc, endRc, fmt }) {
+      function PropGauge({ segs, marker, markerLabel, caption, endL, endR, endLc, endRc, fmt, center }) {
         const F = fmt || ((n) => n), W = 250, H = 164, cx = 125, cy = 124, R = 94, TH = 13, tot = segs.reduce((a, x) => a + x.n, 0), polar = (r, deg) => [cx + r * Math.cos(Math.PI * deg / 180), cy - r * Math.sin(Math.PI * deg / 180)], arc = (r, a0, a1) => {
           const [x0, y0] = polar(r, a0), [x1, y1] = polar(r, a1), large = Math.abs(a1 - a0) > 180 ? 1 : 0;
           return `M${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 ${large} ${a1 < a0 ? 1 : 0} ${x1.toFixed(1)},${y1.toFixed(1)}`;
@@ -1938,7 +1938,7 @@
           const f1 = tot ? acc / tot : 0;
           return { ...sg, a0: 180 - 180 * f0, a1: 180 - 180 * f1, deg: 180 * (f1 - f0), mid: 180 - 180 * (f0 + f1) / 2 };
         }), mk = marker != null && tot ? 180 - 180 * (marker / tot) : null, [mx, my] = mk != null ? polar(R + 7, mk) : [0, 0], [mx2, my2] = mk != null ? polar(R - TH - 7, mk) : [0, 0];
-        return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4 } }, /* @__PURE__ */ React.createElement(
+        return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { style: { position: "relative", width: "100%", maxWidth: 260, display: "flex", justifyContent: "center" } }, center && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", left: 0, right: 0, bottom: "6%", textAlign: "center", pointerEvents: "none", lineHeight: 1.15 } }, center), /* @__PURE__ */ React.createElement(
           "svg",
           {
             viewBox: `4 12 ${W - 8} ${H - 14}`,
@@ -1955,14 +1955,14 @@
           endL && /* @__PURE__ */ React.createElement("text", { x: cx - R + 2, y: cy + 15, textAnchor: "middle", fontFamily: MONO, fontSize: "12", fontWeight: "700", fill: endLc || T.text2 }, endL),
           endR && /* @__PURE__ */ React.createElement("text", { x: cx + R - 2, y: cy + 15, textAnchor: "middle", fontFamily: MONO, fontSize: "12", fontWeight: "700", fill: endRc || T.text2 }, endR),
           caption && /* @__PURE__ */ React.createElement("text", { x: cx, y: cy + 14, textAnchor: "middle", fontFamily: SANS, fontSize: "10", fill: T.text3 }, caption)
-        ), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "2px 10px", fontSize: 10.5, lineHeight: 1.5 } }, segs.map((sg, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" } }, /* @__PURE__ */ React.createElement("span", { style: { width: 9, height: 9, borderRadius: 2, background: sg.c, display: "inline-block", flexShrink: 0 } }), /* @__PURE__ */ React.createElement("span", { style: { color: T.text3 } }, sg.label), /* @__PURE__ */ React.createElement("b", { style: { fontFamily: MONO, color: sg.c2 || T.text2 } }, F(sg.n))))));
+        )), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "2px 10px", fontSize: 10.5, lineHeight: 1.5 } }, segs.map((sg, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" } }, /* @__PURE__ */ React.createElement("span", { style: { width: 9, height: 9, borderRadius: 2, background: sg.c, display: "inline-block", flexShrink: 0 } }), /* @__PURE__ */ React.createElement("span", { style: { color: T.text3 } }, sg.label), /* @__PURE__ */ React.createElement("b", { style: { fontFamily: MONO, color: sg.c2 || T.text2 } }, F(sg.n))))));
       }
       function StackedGauge({ rings, fmt, center }) {
         const F = fmt || ((n) => n), W = 250, H = 150, cx = 125, cy = 132, TH = 12, GAP2 = 4, R0 = 94, polar = (r, deg) => [cx + r * Math.cos(Math.PI * deg / 180), cy - r * Math.sin(Math.PI * deg / 180)], arc = (r, a0, a1) => {
           const [x0, y0] = polar(r, a0), [x1, y1] = polar(r, a1);
           return `M${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 0 ${a1 < a0 ? 1 : 0} ${x1.toFixed(1)},${y1.toFixed(1)}`;
         };
-        return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { style: { position: "relative", width: "100%", maxWidth: 380, display: "flex", justifyContent: "center" } }, center && center.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", left: 0, right: 0, bottom: "4%", display: "flex", flexDirection: "column", alignItems: "center", gap: 1, pointerEvents: "none" } }, center.map((c, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", alignItems: "baseline", gap: 5, lineHeight: 1.1 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10.5, color: T.text3 } }, c.label), /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO, fontSize: i ? 15 : 18, fontWeight: 700, color: c.color } }, c.value)))), /* @__PURE__ */ React.createElement(
+        return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { style: { position: "relative", width: "100%", maxWidth: 380, display: "flex", justifyContent: "center" } }, center && center.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", left: 0, right: 0, bottom: "4%", display: "flex", flexDirection: "column", alignItems: "center", gap: 1, pointerEvents: "none" } }, center.map((c, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", alignItems: "baseline", gap: 5, lineHeight: 1.1 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10.5, color: T.text3 } }, c.label), c.d != null ? /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO, fontSize: i ? 15 : 18, fontWeight: 700 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.demB } }, c.d), /* @__PURE__ */ React.createElement("span", { style: { color: T.text4 } }, " "), /* @__PURE__ */ React.createElement("span", { style: { color: T.repB } }, c.r)) : /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO, fontSize: i ? 15 : 18, fontWeight: 700, color: c.color } }, c.value)))), /* @__PURE__ */ React.createElement(
           "svg",
           {
             viewBox: `22 28 ${W - 44} ${H - 30}`,
@@ -2291,7 +2291,7 @@
         }, legDial = () => {
           const sen = chamber("State Senate"), hou = chamber("State House"), rings = [], center = [], lead = (list) => {
             const d = list.filter((x) => x.race.called && leaderOf(x.race) === "D").length, r = list.filter((x) => x.race.called && leaderOf(x.race) === "R").length;
-            return { value: `${d} D \xB7 ${r} R`, color: d > r ? T.demB : r > d ? T.repB : T.text3 };
+            return { d, r };
           }, cnt = (list) => `${list.filter((x) => counted2(x)).length} of ${list.length} counting`;
           return sen.length && (rings.push({ label: `Senate \xB7 ${sen.length}`, segs: legSegs(sen), note: cnt(sen) }), center.push({ label: "Senate called", ...lead(sen) })), hou.length && (rings.push({ label: `House \xB7 ${hou.length}`, segs: legSegs(hou), note: cnt(hou) }), center.push({ label: "House called", ...lead(hou) })), rings.length ? /* @__PURE__ */ React.createElement(StackedGauge, { rings, center }) : null;
         }, chamberDial = (label, list) => {
@@ -2310,7 +2310,18 @@
             { label: "Not counted", n: has ? Math.max(0, 1e3 - Math.round(d * 10) - Math.round(rr * 10)) : 1e3, c: T.border2, c2: T.text3 },
             { label: "R", n: has ? Math.round(rr * 10) : 0, c: T.rep, c2: T.repB }
           ];
-          return /* @__PURE__ */ React.createElement("div", { key: r.id, style: { background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SERIF, fontSize: 14, fontWeight: 700, textAlign: "center" } }, r.name.replace(/^US House/, "U.S. House")), /* @__PURE__ */ React.createElement(PropGauge, { segs, fmt: (v) => `${(v / 10).toFixed(0)}%`, endL: has ? `${d.toFixed(1)}%` : "", endR: has ? `${rr.toFixed(1)}%` : "", endLc: T.demB, endRc: T.repB }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.text3, textAlign: "center" } }, has ? x.expIn != null ? `~${x.expIn}% counted` : `${r.rpt}% reporting` : "No votes yet"));
+          return /* @__PURE__ */ React.createElement("div", { key: r.id, style: { background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SERIF, fontSize: 14, fontWeight: 700, textAlign: "center" } }, r.name.replace(/^US House/, "U.S. House")), /* @__PURE__ */ React.createElement(
+            PropGauge,
+            {
+              segs,
+              fmt: (v) => `${(v / 10).toFixed(0)}%`,
+              endL: has ? `${d.toFixed(1)}%` : "",
+              endR: has ? `${rr.toFixed(1)}%` : "",
+              endLc: T.demB,
+              endRc: T.repB,
+              center: has ? /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO, fontSize: 17, fontWeight: 700, color: pc(leaderOf(r), !0) } }, leaderOf(r), "+", Math.abs(d - rr).toFixed(1)) : null
+            }
+          ), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.text3, textAlign: "center" } }, has ? x.expIn != null ? `~${x.expIn}% counted` : `${r.rpt}% reporting` : "No votes yet"));
         };
         return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 4 } }, [["bars", "Bars"], ["dial", "Dials"]].map(([k, lab]) => /* @__PURE__ */ React.createElement(Pill, { key: k, active: gv === k, onClick: () => setGv(k) }, lab))), gv === "dial" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: narrow ? "1fr" : "minmax(0,1fr) minmax(0,1fr)", gap: 12 } }, meas.length > 0 && /* @__PURE__ */ React.createElement("div", { style: card }, head("Ballot measures"), measDialStack()), chamber("State House").length || chamber("State Senate").length ? /* @__PURE__ */ React.createElement("div", { style: card }, head("Legislature"), legDial()) : null), house.length > 0 && /* @__PURE__ */ React.createElement("div", null, head("U.S. House"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: narrow ? "repeat(2,minmax(0,1fr))" : `repeat(${Math.min(4, house.length)},minmax(0,1fr))`, gap: 8 } }, house.map(houseDial)))) : /* @__PURE__ */ React.createElement(React.Fragment, null, meas.length > 0 && /* @__PURE__ */ React.createElement("div", null, head("Ballot measures"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: narrow ? "1fr" : "repeat(2,minmax(0,1fr))", gap: 12 } }, meas.map(measure))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: narrow ? "1fr" : "minmax(0,1fr) minmax(0,1fr)", gap: 12, alignItems: "stretch" } }, chamber("State House").length || chamber("State Senate").length ? /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", minWidth: 0 } }, head("Legislature"), /* @__PURE__ */ React.createElement("div", { style: { ...card, flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-evenly", gap: 16 } }, seatBar("State Senate", chamber("State Senate")), seatBar("State House", chamber("State House")))) : null, house.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", minWidth: 0 } }, head("U.S. House"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 8, flex: 1 } }, house.map(hs))))));
       }
