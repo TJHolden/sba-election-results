@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261101003319">
+<meta name="build" content="20261101003612">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261101003319"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261101003612"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -1963,7 +1963,7 @@
           const [x0, y0] = polar(r, a0), [x1, y1] = polar(r, a1);
           return `M${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 0 ${a1 < a0 ? 1 : 0} ${x1.toFixed(1)},${y1.toFixed(1)}`;
         };
-        return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { style: { position: "relative", width: "100%", maxWidth: 380, display: "flex", justifyContent: "center" } }, center && center.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", left: 0, right: 0, bottom: "4%", display: "flex", flexDirection: "column", alignItems: "center", gap: 1, pointerEvents: "none" } }, center.map((c, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", alignItems: "baseline", gap: 5, lineHeight: 1.1 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10.5, color: T.text3 } }, c.label), c.d != null ? /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO, fontSize: i ? 15 : 18, fontWeight: 700 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.demB } }, c.d), /* @__PURE__ */ React.createElement("span", { style: { color: T.text4 } }, " "), /* @__PURE__ */ React.createElement("span", { style: { color: T.repB } }, c.r)) : /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO, fontSize: i ? 15 : 18, fontWeight: 700, color: c.color } }, c.value)))), /* @__PURE__ */ React.createElement(
+        return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { style: { position: "relative", width: "100%", maxWidth: 380, display: "flex", justifyContent: "center" } }, center && center.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", left: 0, right: 0, bottom: "4%", display: "flex", flexDirection: "column", alignItems: "center", gap: 1, pointerEvents: "none" } }, center.map((c, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", alignItems: "baseline", gap: 7, lineHeight: 1.25 } }, /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SANS, fontSize: 9.5, fontWeight: 700, letterSpacing: ".09em", textTransform: "uppercase", color: T.text3 } }, c.label), c.d != null ? /* @__PURE__ */ React.createElement("span", { style: { display: "inline-flex", alignItems: "baseline", gap: 6 } }, /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SANS, fontSize: 9.5, fontWeight: 700, color: T.demB, letterSpacing: ".06em" } }, "DEM"), /* @__PURE__ */ React.createElement("b", { style: { fontFamily: MONO, fontSize: i ? 15 : 17, color: T.demB } }, c.d), /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SANS, fontSize: 9.5, fontWeight: 700, color: T.repB, letterSpacing: ".06em", marginLeft: 4 } }, "GOP"), /* @__PURE__ */ React.createElement("b", { style: { fontFamily: MONO, fontSize: i ? 15 : 17, color: T.repB } }, c.r)) : /* @__PURE__ */ React.createElement("b", { style: { fontFamily: MONO, fontSize: i ? 15 : 17, color: c.color } }, c.value)))), /* @__PURE__ */ React.createElement(
           "svg",
           {
             viewBox: `22 28 ${W - 44} ${H - 30}`,
@@ -2294,7 +2294,7 @@
             const d = list.filter((x) => x.race.called && leaderOf(x.race) === "D").length, r = list.filter((x) => x.race.called && leaderOf(x.race) === "R").length;
             return { d, r };
           }, cnt = (list) => `${list.filter((x) => counted2(x)).length} of ${list.length} counting`;
-          return sen.length && (rings.push({ label: `Senate \xB7 ${sen.length}`, segs: legSegs(sen), note: cnt(sen) }), center.push({ label: "Senate called", ...lead(sen) })), hou.length && (rings.push({ label: `House \xB7 ${hou.length}`, segs: legSegs(hou), note: cnt(hou) }), center.push({ label: "House called", ...lead(hou) })), rings.length ? /* @__PURE__ */ React.createElement(StackedGauge, { rings, center }) : null;
+          return sen.length && (rings.push({ label: `Senate \xB7 ${sen.length}`, segs: legSegs(sen), note: cnt(sen) }), center.push({ label: "Senate", ...lead(sen) })), hou.length && (rings.push({ label: `House \xB7 ${hou.length}`, segs: legSegs(hou), note: cnt(hou) }), center.push({ label: "House", ...lead(hou) })), rings.length ? /* @__PURE__ */ React.createElement(StackedGauge, { rings, center }) : null;
         }, chamberDial = (label, list) => {
           if (!list.length) return null;
           const c = (p) => list.filter((x) => x.race.called && leaderOf(x.race) === p).length, l = (p) => list.filter((x) => !x.race.called && counted2(x) && leaderOf(x.race) === p).length, cd = c("D"), cr = c("R"), ld = l("D"), lr = l("R"), none = Math.max(0, list.length - cd - cr - ld - lr), segs = [
