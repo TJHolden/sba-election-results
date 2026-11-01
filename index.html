@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261031234739">
+<meta name="build" content="20261101003017">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261031234739"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261101003017"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -1926,8 +1926,8 @@
         const b = baselineDR(r, base24), ex = expectedVote(r, base24, fy), E = ex && ex.E || (piece && piece.p ? piece.p[2] : null), mp = multiParty(r);
         return [{ c: "all", whole: !0, b, s1: null, s2: null, E, C: counted(r), Dv: mp ? partyVotes(r, "D") : votesOf(r, "D"), Rv: mp ? partyVotes(r, "R") : votesOf(r, "R"), rpt: r.rpt }];
       }
-      function PropGauge({ segs, marker, markerLabel, caption, endL, endR, endLc, endRc }) {
-        const tot = segs.reduce((a, x) => a + x.n, 0), polar = (r, deg) => [125 + r * Math.cos(Math.PI * deg / 180), 124 - r * Math.sin(Math.PI * deg / 180)], arc = (r, a0, a1) => {
+      function PropGauge({ segs, marker, markerLabel, caption, endL, endR, endLc, endRc, fmt }) {
+        const F = fmt || ((n) => n), W = 250, H = 164, cx = 125, cy = 124, R = 94, TH = 13, tot = segs.reduce((a, x) => a + x.n, 0), polar = (r, deg) => [cx + r * Math.cos(Math.PI * deg / 180), cy - r * Math.sin(Math.PI * deg / 180)], arc = (r, a0, a1) => {
           const [x0, y0] = polar(r, a0), [x1, y1] = polar(r, a1), large = Math.abs(a1 - a0) > 180 ? 1 : 0;
           return `M${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 ${large} ${a1 < a0 ? 1 : 0} ${x1.toFixed(1)},${y1.toFixed(1)}`;
         };
@@ -1937,25 +1937,50 @@
           acc += sg.n;
           const f1 = tot ? acc / tot : 0;
           return { ...sg, a0: 180 - 180 * f0, a1: 180 - 180 * f1, deg: 180 * (f1 - f0), mid: 180 - 180 * (f0 + f1) / 2 };
-        }), mk = marker != null && tot ? 180 - 180 * (marker / tot) : null, [mx, my] = mk != null ? polar(101, mk) : [0, 0], [mx2, my2] = mk != null ? polar(74, mk) : [0, 0];
+        }), mk = marker != null && tot ? 180 - 180 * (marker / tot) : null, [mx, my] = mk != null ? polar(R + 7, mk) : [0, 0], [mx2, my2] = mk != null ? polar(R - TH - 7, mk) : [0, 0];
         return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4 } }, /* @__PURE__ */ React.createElement(
           "svg",
           {
-            viewBox: "0 0 250 164",
-            style: { width: "100%", height: "auto", display: "block" },
+            viewBox: `4 12 ${W - 8} ${H - 14}`,
+            style: { width: "100%", maxWidth: 260, height: "auto", display: "block" },
             role: "img",
             "aria-label": segs.map((x) => `${x.label} ${x.n}`).join(", ")
           },
-          laid.filter((x) => x.n > 0).map((x, i) => /* @__PURE__ */ React.createElement("path", { key: i, d: arc(94 - 13 / 2, x.a0 - (i ? 0.8 : 0), x.a1 + (i < laid.length - 1 ? 0.8 : 0)), stroke: x.c, strokeWidth: 13, fill: "none", strokeLinecap: "butt" })),
+          laid.filter((x) => x.n > 0).map((x, i) => /* @__PURE__ */ React.createElement("path", { key: i, d: arc(R - TH / 2, x.a0 - (i ? 0.8 : 0), x.a1 + (i < laid.length - 1 ? 0.8 : 0)), stroke: x.c, strokeWidth: TH, fill: "none", strokeLinecap: "butt" })),
           laid.filter((x) => x.deg >= 18).map((x, i) => {
-            const [tx, ty] = polar(109, x.mid), anchor = x.mid > 105 ? "end" : x.mid < 75 ? "start" : "middle";
-            return /* @__PURE__ */ React.createElement("text", { key: "l" + i, x: tx, y: ty + (x.mid > 60 && x.mid < 120 ? -1 : 4), textAnchor: anchor, fontFamily: MONO, fontSize: "11", fontWeight: "700", fill: x.c2 || x.c }, x.n);
+            const [tx, ty] = polar(R + 15, x.mid), anchor = x.mid > 105 ? "end" : x.mid < 75 ? "start" : "middle";
+            return /* @__PURE__ */ React.createElement("text", { key: "l" + i, x: tx, y: ty + (x.mid > 60 && x.mid < 120 ? -1 : 4), textAnchor: anchor, fontFamily: MONO, fontSize: "11", fontWeight: "700", fill: x.c2 || x.c }, F(x.n));
           }),
-          mk != null && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("line", { x1: mx, y1: my, x2: mx2, y2: my2, stroke: T.text, strokeWidth: "2" }), /* @__PURE__ */ React.createElement("text", { x: 125, y: 118, textAnchor: "middle", fontFamily: SANS, fontSize: "9.5", fontWeight: "700", fill: T.text3, letterSpacing: "1" }, markerLabel)),
-          endL && /* @__PURE__ */ React.createElement("text", { x: 33, y: 139, textAnchor: "middle", fontFamily: MONO, fontSize: "12", fontWeight: "700", fill: endLc || T.text2 }, endL),
-          endR && /* @__PURE__ */ React.createElement("text", { x: 217, y: 139, textAnchor: "middle", fontFamily: MONO, fontSize: "12", fontWeight: "700", fill: endRc || T.text2 }, endR),
-          caption && /* @__PURE__ */ React.createElement("text", { x: 125, y: 138, textAnchor: "middle", fontFamily: SANS, fontSize: "10", fill: T.text3 }, caption)
-        ), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "2px 10px", fontSize: 10.5, lineHeight: 1.5 } }, segs.map((sg, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" } }, /* @__PURE__ */ React.createElement("span", { style: { width: 9, height: 9, borderRadius: 2, background: sg.c, display: "inline-block", flexShrink: 0 } }), /* @__PURE__ */ React.createElement("span", { style: { color: T.text3 } }, sg.label), /* @__PURE__ */ React.createElement("b", { style: { fontFamily: MONO, color: sg.c2 || T.text2 } }, sg.n)))));
+          mk != null && /* @__PURE__ */ React.createElement("g", null, /* @__PURE__ */ React.createElement("line", { x1: mx, y1: my, x2: mx2, y2: my2, stroke: T.text, strokeWidth: "2" }), /* @__PURE__ */ React.createElement("text", { x: cx, y: cy - 6, textAnchor: "middle", fontFamily: SANS, fontSize: "9.5", fontWeight: "700", fill: T.text3, letterSpacing: "1" }, markerLabel)),
+          endL && /* @__PURE__ */ React.createElement("text", { x: cx - R + 2, y: cy + 15, textAnchor: "middle", fontFamily: MONO, fontSize: "12", fontWeight: "700", fill: endLc || T.text2 }, endL),
+          endR && /* @__PURE__ */ React.createElement("text", { x: cx + R - 2, y: cy + 15, textAnchor: "middle", fontFamily: MONO, fontSize: "12", fontWeight: "700", fill: endRc || T.text2 }, endR),
+          caption && /* @__PURE__ */ React.createElement("text", { x: cx, y: cy + 14, textAnchor: "middle", fontFamily: SANS, fontSize: "10", fill: T.text3 }, caption)
+        ), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "2px 10px", fontSize: 10.5, lineHeight: 1.5 } }, segs.map((sg, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" } }, /* @__PURE__ */ React.createElement("span", { style: { width: 9, height: 9, borderRadius: 2, background: sg.c, display: "inline-block", flexShrink: 0 } }), /* @__PURE__ */ React.createElement("span", { style: { color: T.text3 } }, sg.label), /* @__PURE__ */ React.createElement("b", { style: { fontFamily: MONO, color: sg.c2 || T.text2 } }, F(sg.n))))));
+      }
+      function StackedGauge({ rings, fmt, center }) {
+        const F = fmt || ((n) => n), W = 250, H = 150, cx = 125, cy = 132, TH = 12, GAP2 = 4, R0 = 94, polar = (r, deg) => [cx + r * Math.cos(Math.PI * deg / 180), cy - r * Math.sin(Math.PI * deg / 180)], arc = (r, a0, a1) => {
+          const [x0, y0] = polar(r, a0), [x1, y1] = polar(r, a1);
+          return `M${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 0 ${a1 < a0 ? 1 : 0} ${x1.toFixed(1)},${y1.toFixed(1)}`;
+        };
+        return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: "100%" } }, /* @__PURE__ */ React.createElement("div", { style: { position: "relative", width: "100%", maxWidth: 380, display: "flex", justifyContent: "center" } }, center && center.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", left: 0, right: 0, bottom: "4%", display: "flex", flexDirection: "column", alignItems: "center", gap: 1, pointerEvents: "none" } }, center.map((c, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", alignItems: "baseline", gap: 5, lineHeight: 1.1 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10.5, color: T.text3 } }, c.label), /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO, fontSize: i ? 15 : 18, fontWeight: 700, color: c.color } }, c.value)))), /* @__PURE__ */ React.createElement(
+          "svg",
+          {
+            viewBox: `22 28 ${W - 44} ${H - 30}`,
+            style: { width: "100%", maxWidth: 380, height: "auto", display: "block" },
+            role: "img",
+            "aria-label": rings.map((r) => `${r.label}: ${r.segs.map((x) => x.label + " " + x.n).join(", ")}`).join(" \xB7 ")
+          },
+          rings.map((ring, ri) => {
+            const R = R0 - ri * (TH + GAP2), tot = ring.segs.reduce((a, x) => a + x.n, 0) || 1;
+            let acc = 0;
+            return /* @__PURE__ */ React.createElement("g", { key: ri }, ring.segs.map((sg, i) => {
+              const a0 = 180 - 180 * (acc / tot);
+              acc += sg.n;
+              const a1 = 180 - 180 * (acc / tot);
+              return sg.n <= 0 ? null : /* @__PURE__ */ React.createElement("path", { key: i, d: arc(R - TH / 2, a0, a1), stroke: sg.c, strokeWidth: TH, fill: "none", strokeLinecap: "butt" });
+            }));
+          })
+        )), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 2, width: "100%" } }, rings.map((ring, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", flexWrap: "wrap", gap: "0 8px", justifyContent: "center", fontSize: 11, alignItems: "baseline" } }, /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 700, color: T.text2 } }, ring.label), ring.segs.filter((x) => x.n > 0).map((sg, j) => /* @__PURE__ */ React.createElement("span", { key: j, style: { display: "inline-flex", alignItems: "center", gap: 3, whiteSpace: "nowrap" } }, /* @__PURE__ */ React.createElement("span", { style: { width: 8, height: 8, borderRadius: 2, background: sg.c, display: "inline-block" } }), /* @__PURE__ */ React.createElement("span", { style: { color: T.text3 } }, sg.label), /* @__PURE__ */ React.createElement("b", { style: { fontFamily: MONO, color: sg.c2 || T.text2 } }, F(sg.n)))), ring.note && /* @__PURE__ */ React.createElement("span", { style: { color: T.text4 } }, "\xB7 ", ring.note)))));
       }
       function ChamberNow({ label, tally, big }) {
         const { a, b, aLead, bLead, none, seats, majority, majorityB } = tally, out = none + aLead + bLead, status = majority ? a >= majority ? ["Democrats have a majority", T.demB] : b >= majorityB ? ["Republicans have a majority", T.repB] : [/* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { style: { color: T.demB } }, "Democrats need ", /* @__PURE__ */ React.createElement("b", { style: { fontFamily: MONO } }, Math.max(0, majority - a))), /* @__PURE__ */ React.createElement("span", { style: { color: T.text3 } }, " \xB7 "), /* @__PURE__ */ React.createElement("span", { style: { color: T.repB } }, "Republicans need ", /* @__PURE__ */ React.createElement("b", { style: { fontFamily: MONO } }, Math.max(0, majorityB - b)))), T.text2] : a + b ? [`${a + b} of ${seats} called`, a > b ? T.demB : b > a ? T.repB : T.text2] : ["None called yet", T.text3], X = (k) => seats ? `${Math.max(0, Math.min(100, 100 * k / seats))}%` : "0%", num = (k, c, lab) => /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: MONO, fontSize: big ? 30 : 24, fontWeight: 700, color: c, lineHeight: 1.1 } }, k), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9.5, fontWeight: 700, letterSpacing: 1.2, color: T.text3, textTransform: "uppercase" } }, lab)), segs = [
@@ -2220,7 +2245,11 @@
         })));
       }
       function StateGlance({ rows }) {
-        const narrow = React.useContext(NarrowCtx), meas = rows.filter((x) => x.race && x.measure).sort((a, b) => String(a.race.name).localeCompare(String(b.race.name))), house = rows.filter((x) => x.race && x.race.level === "Federal" && x.race.type === "House").sort((a, b) => (+cdOf(a.race) || 0) - (+cdOf(b.race) || 0)), chamber = (t) => rows.filter((x) => x.race && x.race.type === t), card = { background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: "12px 16px" }, counted2 = (x) => x.race.v1 + x.race.v2 > 0, sideOf = (r, p) => p === r.p1 ? r.a1 : p === r.p2 ? r.a2 : 0, head = (l) => /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SANS, fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.goldText, textTransform: "uppercase", marginBottom: 8 } }, l), measure = (x) => {
+        const narrow = React.useContext(NarrowCtx), [gv, setGv] = useState(() => lsGet("glanceView", 400 * 864e5) || "dial");
+        useEffect(() => {
+          lsSet("glanceView", gv);
+        }, [gv]);
+        const meas = rows.filter((x) => x.race && x.measure).sort((a, b) => String(a.race.name).localeCompare(String(b.race.name))), house = rows.filter((x) => x.race && x.race.level === "Federal" && x.race.type === "House").sort((a, b) => (+cdOf(a.race) || 0) - (+cdOf(b.race) || 0)), chamber = (t) => rows.filter((x) => x.race && x.race.type === t), card = { background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: "12px 16px" }, counted2 = (x) => x.race.v1 + x.race.v2 > 0, sideOf = (r, p) => p === r.p1 ? r.a1 : p === r.p2 ? r.a2 : 0, head = (l) => /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SANS, fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.goldText, textTransform: "uppercase", marginBottom: 8 } }, l), measure = (x) => {
           const r = x.race, has = counted2(x), y = sideOf(r, "Y"), n = sideOf(r, "N"), st = r.called ? r.winner === "Y" ? "Passed" : "Failed" : has ? "Counting" : "Not yet counting", sc = r.called ? r.winner === "Y" ? T.yes : T.no : has ? T.amber : T.text3, tot = (r.v1 || 0) + (r.v2 || 0), yv = r.p1 === "Y" ? r.v1 : r.v2, need = has && !r.called && x.left > 0 ? (tot / 2 + x.left / 2 - yv) / x.left : null;
           return /* @__PURE__ */ React.createElement("div", { key: r.id, style: card }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SERIF, fontSize: 16, fontWeight: 700, flex: 1, minWidth: 0 } }, r.name), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, fontWeight: 700, color: sc, border: `1px solid ${sc}`, borderRadius: 12, padding: "1px 8px" } }, st)), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 8 } }, /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO, fontSize: 26, fontWeight: 700, color: T.yes } }, has ? `${y.toFixed(1)}%` : "\u2014", /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SANS, fontSize: 12, fontWeight: 600, marginLeft: 6 } }, "Yes")), /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO, fontSize: 26, fontWeight: 700, color: T.no } }, /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SANS, fontSize: 12, fontWeight: 600, marginRight: 6 } }, "No"), has ? `${n.toFixed(1)}%` : "\u2014")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", height: 10, borderRadius: 5, overflow: "hidden", background: T.border, marginTop: 4 } }, has && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { width: `${y}%`, background: T.yes } }), /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }), /* @__PURE__ */ React.createElement("div", { style: { width: `${n}%`, background: T.no } }))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: T.text3, marginTop: 6 } }, has ? /* @__PURE__ */ React.createElement(React.Fragment, null, x.expIn != null ? `~${x.expIn}% of the expected vote counted` : `${r.rpt}% reporting`, x.left ? ` \xB7 \u2248${kfmtVotes(x.left)} still expected` : "") : "No votes counted yet"), need != null && need > 0 && need < 1 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: T.text2, marginTop: 4 }, title: "Arithmetic from the votes counted and the votes still expected \u2014 not a prediction" }, "To finish ahead, Yes needs ", /* @__PURE__ */ React.createElement("b", { style: { color: T.text } }, Math.round(need * 100), "%"), " of the votes still out"), need != null && (need >= 1 || need <= 0) && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: T.text2, marginTop: 4 }, title: "Arithmetic from the votes counted and the votes still expected" }, need >= 1 ? "Yes can't catch up at the expected turnout" : "No can't catch up at the expected turnout"));
         }, seatBar = (label, list) => {
@@ -2228,15 +2257,62 @@
           const c = (p) => list.filter((x) => x.race.called && leaderOf(x.race) === p).length, l = (p) => list.filter((x) => !x.race.called && counted2(x) && leaderOf(x.race) === p).length, cr = c("R"), lr = l("R"), ld = l("D"), cd = c("D"), oth = list.filter((x) => x.race.called && !["R", "D"].includes(leaderOf(x.race))).length, wait = list.length - cr - lr - ld - cd - oth, w = (v) => `${100 * v / list.length}%`;
           return /* @__PURE__ */ React.createElement("div", { style: { marginTop: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 12.5, fontWeight: 600 } }, /* @__PURE__ */ React.createElement("span", null, label, " ", /* @__PURE__ */ React.createElement("span", { style: { color: T.text3, fontWeight: 400 } }, "\xB7 ", list.length, " ", list.length === 1 ? "seat" : "seats", " on the ballot"))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", height: 16, borderRadius: 4, overflow: "hidden", background: T.border, marginTop: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { width: w(cr), background: T.rep } }), /* @__PURE__ */ React.createElement("div", { style: { width: w(lr), background: T.rep + "77" } }), /* @__PURE__ */ React.createElement("div", { style: { width: w(wait), background: T.border2 } }), /* @__PURE__ */ React.createElement("div", { style: { width: w(oth), background: T.ind } }), /* @__PURE__ */ React.createElement("div", { style: { width: w(ld), background: T.dem + "77" } }), /* @__PURE__ */ React.createElement("div", { style: { width: w(cd), background: T.dem } })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "2px 10px", fontSize: 11.5, marginTop: 3 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.repB } }, "R: ", /* @__PURE__ */ React.createElement("b", null, cr), " called", lr ? ` \xB7 ${lr} leading` : ""), /* @__PURE__ */ React.createElement("span", { style: { color: T.text3 } }, wait, " not counting yet", oth ? ` \xB7 ${oth} other` : ""), /* @__PURE__ */ React.createElement("span", { style: { color: T.demB } }, "D: ", /* @__PURE__ */ React.createElement("b", null, cd), " called", ld ? ` \xB7 ${ld} leading` : "")));
         }, hs = (x) => {
-          const r = x.race, has = counted2(x), lead = leaderOf(r), nm = lead === r.p1 ? r.c1 : r.c2;
-          return /* @__PURE__ */ React.createElement("div", { key: r.id, style: { ...card, padding: "10px 12px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline" } }, /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SERIF, fontSize: 14, fontWeight: 700 } }, r.name.replace(/^US House/, "U.S. House")), r.called ? /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10.5, fontWeight: 700, color: T.green } }, "\u2713 Called") : null), has ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 600, marginTop: 4, color: pc(lead, !0) } }, nm, " ", /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO } }, lead, "+", Math.abs(marginOf(r)).toFixed(1))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.text3, marginTop: 2 } }, x.expIn != null ? `~${x.expIn}% counted` : `${r.rpt}% reporting`), x.proj && !r.called ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.text2, marginTop: 2 } }, (() => {
-            const P = x.proj;
-            if (P.pD == null) return null;
-            const w = P.pD >= 0.5 ? "D" : "R", c = Math.max(P.pD, 1 - P.pD);
-            return `Forecast: ${c >= 0.95 ? "likely" : c >= 0.75 ? "lean" : "toss-up"}${c >= 0.75 ? " " + w : ""} \xB7 ${c > 0.99 ? ">99" : Math.round(c * 100)}%`;
-          })()) : null) : /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: T.text3, marginTop: 4 } }, r.c1, " vs. ", r.c2, " \xB7 no votes yet"));
+          const r = x.race, has = counted2(x), lead = leaderOf(r), nm = lead === r.p1 ? r.c1 : r.c2, dS = r.p1 === "D" ? r.a1 : r.p2 === "D" ? r.a2 : 0, rS = r.p1 === "R" ? r.a1 : r.p2 === "R" ? r.a2 : 0;
+          return /* @__PURE__ */ React.createElement("div", { key: r.id, style: { ...card, padding: "10px 12px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline" } }, /* @__PURE__ */ React.createElement("span", { style: { fontFamily: SERIF, fontSize: 14, fontWeight: 700 } }, r.name.replace(/^US House/, "U.S. House")), r.called ? /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10.5, fontWeight: 700, color: T.green } }, "\u2713 Called") : null), has ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 600, marginTop: 4, color: pc(lead, !0) } }, nm, " ", /* @__PURE__ */ React.createElement("span", { style: { fontFamily: MONO } }, lead, "+", Math.abs(marginOf(r)).toFixed(1))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", height: 9, borderRadius: 5, overflow: "hidden", background: T.border, marginTop: 4 }, "aria-hidden": "true" }, /* @__PURE__ */ React.createElement("div", { style: { width: `${Math.max(0, Math.min(100, dS))}%`, background: T.dem, transition: "width .8s" } }), /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }), /* @__PURE__ */ React.createElement("div", { style: { width: `${Math.max(0, Math.min(100, rS))}%`, background: T.rep, transition: "width .8s" } })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 11, marginTop: 2 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.demB } }, dS.toFixed(1), "%"), /* @__PURE__ */ React.createElement("span", { style: { color: T.repB } }, rS.toFixed(1), "%")), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.text3, marginTop: 2 } }, x.expIn != null ? `~${x.expIn}% counted` : `${r.rpt}% reporting`)) : /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: T.text3, marginTop: 4 } }, r.c1, " vs. ", r.c2, " \xB7 no votes yet"));
+        }, measDial = (x) => {
+          const r = x.race, has = x.race.v1 + x.race.v2 > 0, y = r.a1, n = r.a2, segs = [{ label: "Yes", n: has ? Math.round(y * 10) : 0, c: T.yes, c2: T.yes }, { label: "Undecided", n: has ? Math.max(0, 1e3 - Math.round(y * 10) - Math.round(n * 10)) : 1e3, c: T.border2, c2: T.text3 }, { label: "No", n: has ? Math.round(n * 10) : 0, c: T.no, c2: T.no }];
+          return /* @__PURE__ */ React.createElement("div", { key: r.id, style: { background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: "12px 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SERIF, fontSize: 15, fontWeight: 700, textAlign: "center" } }, r.name), /* @__PURE__ */ React.createElement(PropGauge, { segs, fmt: (v) => `${(v / 10).toFixed(0)}%`, endL: has ? `${y.toFixed(1)}%` : "", endR: has ? `${n.toFixed(1)}%` : "", endLc: T.yes, endRc: T.no }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: T.text3, textAlign: "center" } }, has ? x.expIn != null ? `~${x.expIn}% of the expected vote counted` : `${r.rpt}% reporting` : "No votes counted yet"));
+        }, legSegs = (list) => {
+          const c = (p) => list.filter((x) => x.race.called && leaderOf(x.race) === p).length, l = (p) => list.filter((x) => !x.race.called && counted2(x) && leaderOf(x.race) === p).length, cd = c("D"), cr = c("R"), ld = l("D"), lr = l("R");
+          return [
+            { label: "Won D", n: cd, c: T.dem, c2: T.demB },
+            { label: "Leading D", n: ld, c: T.dem + "77", c2: T.demB },
+            { label: "Not called", n: Math.max(0, list.length - cd - cr - ld - lr), c: T.border2, c2: T.text3 },
+            { label: "Leading R", n: lr, c: T.rep + "77", c2: T.repB },
+            { label: "Won R", n: cr, c: T.rep, c2: T.repB }
+          ];
+        }, measSegs = (x) => {
+          const r = x.race, has = r.v1 + r.v2 > 0, y = r.a1, nn = r.a2;
+          return [
+            { label: "Yes", n: has ? Math.round(y * 10) : 0, c: T.yes, c2: T.yes },
+            { label: "Undecided", n: has ? Math.max(0, 1e3 - Math.round(y * 10) - Math.round(nn * 10)) : 1e3, c: T.border2, c2: T.text3 },
+            { label: "No", n: has ? Math.round(nn * 10) : 0, c: T.no, c2: T.no }
+          ];
+        }, measDialStack = () => {
+          const rings = meas.map((x) => ({
+            label: String(x.race.name).replace(/^Utah\s+/, ""),
+            segs: measSegs(x),
+            note: x.race.v1 + x.race.v2 > 0 ? x.expIn != null ? `~${x.expIn}% counted` : `${x.race.rpt}% reporting` : "no votes yet"
+          })), center = meas.map((x) => {
+            const r = x.race, has = r.v1 + r.v2 > 0, y = r.a1, nn = r.a2;
+            return { label: String(r.name).replace(/^Utah\s+/, "").replace(/Constitutional Amendment\s+/i, "Amend. "), value: has ? y >= nn ? `Yes ${y.toFixed(0)}%` : `No ${nn.toFixed(0)}%` : "\u2014", color: has ? y >= nn ? T.yes : T.no : T.text3 };
+          });
+          return rings.length ? /* @__PURE__ */ React.createElement(StackedGauge, { rings, fmt: (v) => `${(v / 10).toFixed(0)}%`, center }) : null;
+        }, legDial = () => {
+          const sen = chamber("State Senate"), hou = chamber("State House"), rings = [], center = [], lead = (list) => {
+            const d = list.filter((x) => x.race.called && leaderOf(x.race) === "D").length, r = list.filter((x) => x.race.called && leaderOf(x.race) === "R").length;
+            return { value: `${d}\u2013${r}`, color: d > r ? T.demB : r > d ? T.repB : T.text3 };
+          }, cnt = (list) => `${list.filter((x) => counted2(x)).length} of ${list.length} counting`;
+          return sen.length && (rings.push({ label: `Senate \xB7 ${sen.length}`, segs: legSegs(sen), note: cnt(sen) }), center.push({ label: "Senate", ...lead(sen) })), hou.length && (rings.push({ label: `House \xB7 ${hou.length}`, segs: legSegs(hou), note: cnt(hou) }), center.push({ label: "House", ...lead(hou) })), rings.length ? /* @__PURE__ */ React.createElement(StackedGauge, { rings, center }) : null;
+        }, chamberDial = (label, list) => {
+          if (!list.length) return null;
+          const c = (p) => list.filter((x) => x.race.called && leaderOf(x.race) === p).length, l = (p) => list.filter((x) => !x.race.called && counted2(x) && leaderOf(x.race) === p).length, cd = c("D"), cr = c("R"), ld = l("D"), lr = l("R"), none = Math.max(0, list.length - cd - cr - ld - lr), segs = [
+            { label: "Won D", n: cd, c: T.dem, c2: T.demB },
+            { label: "Leading D", n: ld, c: T.dem + "77", c2: T.demB },
+            { label: "Not called", n: none, c: T.border2, c2: T.text3 },
+            { label: "Leading R", n: lr, c: T.rep + "77", c2: T.repB },
+            { label: "Won R", n: cr, c: T.rep, c2: T.repB }
+          ];
+          return /* @__PURE__ */ React.createElement("div", { key: label, style: { marginTop: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12.5, fontWeight: 600, textAlign: "center" } }, label, " ", /* @__PURE__ */ React.createElement("span", { style: { color: T.text3, fontWeight: 400 } }, "\xB7 ", list.length, " ", list.length === 1 ? "seat" : "seats")), /* @__PURE__ */ React.createElement(PropGauge, { segs }));
+        }, houseDial = (x) => {
+          const r = x.race, has = counted2(x), d = r.p1 === "D" ? r.a1 : r.p2 === "D" ? r.a2 : 0, rr = r.p1 === "R" ? r.a1 : r.p2 === "R" ? r.a2 : 0, segs = [
+            { label: "D", n: has ? Math.round(d * 10) : 0, c: T.dem, c2: T.demB },
+            { label: "Not counted", n: has ? Math.max(0, 1e3 - Math.round(d * 10) - Math.round(rr * 10)) : 1e3, c: T.border2, c2: T.text3 },
+            { label: "R", n: has ? Math.round(rr * 10) : 0, c: T.rep, c2: T.repB }
+          ];
+          return /* @__PURE__ */ React.createElement("div", { key: r.id, style: { background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: "10px 12px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontFamily: SERIF, fontSize: 14, fontWeight: 700, textAlign: "center" } }, r.name.replace(/^US House/, "U.S. House")), /* @__PURE__ */ React.createElement(PropGauge, { segs, fmt: (v) => `${(v / 10).toFixed(0)}%`, endL: has ? `${d.toFixed(1)}%` : "", endR: has ? `${rr.toFixed(1)}%` : "", endLc: T.demB, endRc: T.repB }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.text3, textAlign: "center" } }, has ? x.expIn != null ? `~${x.expIn}% counted` : `${r.rpt}% reporting` : "No votes yet"));
         };
-        return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, meas.length > 0 && /* @__PURE__ */ React.createElement("div", null, head("Ballot measures"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: narrow ? "1fr" : "repeat(2,minmax(0,1fr))", gap: 12 } }, meas.map(measure))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: narrow ? "1fr" : "minmax(0,1fr) minmax(0,1fr)", gap: 12 } }, chamber("State House").length || chamber("State Senate").length ? /* @__PURE__ */ React.createElement("div", { style: card }, head("Legislature"), seatBar("State House", chamber("State House")), seatBar("State Senate", chamber("State Senate"))) : null, house.length > 0 && /* @__PURE__ */ React.createElement("div", null, head("U.S. House"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 8 } }, house.map(hs)))));
+        return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 4 } }, [["bars", "Bars"], ["dial", "Dials"]].map(([k, lab]) => /* @__PURE__ */ React.createElement(Pill, { key: k, active: gv === k, onClick: () => setGv(k) }, lab))), gv === "dial" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: narrow ? "1fr" : "minmax(0,1fr) minmax(0,1fr)", gap: 12 } }, meas.length > 0 && /* @__PURE__ */ React.createElement("div", { style: card }, head("Ballot measures"), measDialStack()), chamber("State House").length || chamber("State Senate").length ? /* @__PURE__ */ React.createElement("div", { style: card }, head("Legislature"), legDial()) : null), house.length > 0 && /* @__PURE__ */ React.createElement("div", null, head("U.S. House"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: narrow ? "repeat(2,minmax(0,1fr))" : `repeat(${Math.min(4, house.length)},minmax(0,1fr))`, gap: 8 } }, house.map(houseDial)))) : /* @__PURE__ */ React.createElement(React.Fragment, null, meas.length > 0 && /* @__PURE__ */ React.createElement("div", null, head("Ballot measures"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: narrow ? "1fr" : "repeat(2,minmax(0,1fr))", gap: 12 } }, meas.map(measure))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: narrow ? "1fr" : "minmax(0,1fr) minmax(0,1fr)", gap: 12, alignItems: "stretch" } }, chamber("State House").length || chamber("State Senate").length ? /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", minWidth: 0 } }, head("Legislature"), /* @__PURE__ */ React.createElement("div", { style: { ...card, flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-evenly", gap: 16 } }, seatBar("State Senate", chamber("State Senate")), seatBar("State House", chamber("State House")))) : null, house.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", minWidth: 0 } }, head("U.S. House"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 8, flex: 1 } }, house.map(hs))))));
       }
       function SbaTab({ matches, hist, calledAt }) {
         const narrow = React.useContext(NarrowCtx), est = React.useContext(EstCtx), [flt, setFlt] = useState("all"), [q, setQ] = useState(""), [open, setOpen] = useState(null), [stF, setStF] = useState("all"), rows = useMemo(() => matches.map((m) => {
@@ -3519,7 +3595,8 @@
           !silent && !wasLive ? (setApi("loading"), setApiMsg(""), setProg({ loaded: 0, total: null }), setRaces([])) : (setRefreshing(!0), silent || setProg({ loaded: 0, total: null }));
           const progressive = !silent && !wasLive;
           let onlyStates = null;
-          if (silent && wasLive && parseDateQuery(sq) && racesRef.current.length && Date.now() - lastFullRef.current < FULL_SWEEP_MS && (onlyStates = hotStatesOf(racesRef.current, pollsCloseRef.current, Date.now()), !onlyStates.length)) {
+          if (ONLY && CLIENT.state) onlyStates = [CLIENT.state];
+          else if (silent && wasLive && parseDateQuery(sq) && racesRef.current.length && Date.now() - lastFullRef.current < FULL_SWEEP_MS && (onlyStates = hotStatesOf(racesRef.current, pollsCloseRef.current, Date.now()), !onlyStates.length)) {
             loadingRef.current = !1, setRefreshing(!1);
             return;
           }
@@ -3529,7 +3606,7 @@
             }, progressive ? (partial) => {
               partial.length && setRaces(partial);
             } : null, onlyStates);
-            if (onlyStates) {
+            if (onlyStates && !ONLY) {
               const set = new Set(onlyStates), keepOld = racesRef.current.filter((r) => !set.has(r.abbr)), prevCap = cappedRef.current.filter((a) => !set.has(a));
               data = Object.assign([...data, ...keepOld], { failed: data.failed || [], capped: [.../* @__PURE__ */ new Set([...prevCap, ...data.capped || []])] });
             } else parseDateQuery(sq) && (lastFullRef.current = Date.now());
