@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261102113922">
+<meta name="build" content="20261102125551">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261102113922"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261102125551"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -84,7 +84,7 @@
     }
   });
   var require_app_src = __commonJS({
-    "qa/app_src.jsx"(exports, module) {
+    "../en/qa/app_src.jsx"(exports, module) {
       init_define_CLIENT();
       init_define_SBA_PICKS();
       const { useState, useEffect, useMemo, useRef, useLayoutEffect, useCallback } = React, SERIF = "'Source Serif 4', Georgia, serif", MONO = "'JetBrains Mono', ui-monospace, monospace", SANS = "'DM Sans', system-ui, sans-serif", T = {
@@ -2474,7 +2474,7 @@
               return /* @__PURE__ */ React.createElement("div", { title: `Estimate from the votes counted so far and the votes still expected (county model) \u2014 not a race call.${P.early ? " Still early: it leans on the pre-election starting point." : ""}`, style: { marginTop: 8, padding: "7px 10px", borderRadius: 6, background: T.surface, border: `1px solid ${T.border}`, fontSize: 12.5, color: T.text2, cursor: "help" } }, /* @__PURE__ */ React.createElement("b", { style: { color: tag === "Toss-up" ? T.amber : pc(w, !0) } }, "Forecast: ", tag === "Toss-up" ? "toss-up" : `${tag.toLowerCase()} ${w}`), " \xB7 ", /* @__PURE__ */ React.createElement("b", { style: { color: T.text } }, chP(conf), "%"), " chance ", w === "D" ? P.nameD : P.nameR, " wins", P.m != null ? /* @__PURE__ */ React.createElement(React.Fragment, null, " \xB7 forecast finish ", /* @__PURE__ */ React.createElement("b", { style: { color: T.text } }, fm(P.m)), P.lo != null && P.hi != null ? /* @__PURE__ */ React.createElement("span", { style: { color: T.text3 } }, " (range ", fm(P.lo), " to ", fm(P.hi), ")") : null) : null, P.early ? /* @__PURE__ */ React.createElement("span", { style: { color: T.text3 } }, " \xB7 early") : null, P.limited ? /* @__PURE__ */ React.createElement("span", { style: { color: T.amber } }, " \xB7 limited county data") : null, /* @__PURE__ */ React.createElement("span", { style: { color: T.text4 } }, " \xB7 estimate, not a call"));
             })() : /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6, fontSize: 11, color: T.text4 } }, x.measure ? "No forecast for ballot measures" : "No forecast for this race") : counting && (x.proj ? /* @__PURE__ */ React.createElement("div", { title: `Estimate from the votes counted so far and the votes still expected (county model) \u2014 not a race call.${x.proj.early ? " Still early: it leans on the pre-election starting point." : ""}`, style: { marginTop: 8, padding: "7px 10px", borderRadius: 6, background: T.surface, border: `1px solid ${T.border}`, fontSize: 12.5, color: T.text2, cursor: "help" } }, /* @__PURE__ */ React.createElement("b", { style: { color: x.proj.chance >= 0.6 ? T.green : x.proj.chance > 0.4 ? T.amber : T.red } }, chanceTxt(x.proj.chance)), " \xB7 ", /* @__PURE__ */ React.createElement("b", { style: { color: T.text } }, chP(x.proj.chance), "%"), " chance ", x.cand, " wins", x.proj.m != null ? /* @__PURE__ */ React.createElement(React.Fragment, null, " \xB7 forecast to finish ", /* @__PURE__ */ React.createElement("b", { style: { color: T.text } }, sgn(x.proj.m)), x.proj.lo != null ? /* @__PURE__ */ React.createElement("span", { style: { color: T.text3 } }, " (range ", sgn(x.proj.lo), " to ", sgn(x.proj.hi), ")") : null) : null, x.proj.early ? /* @__PURE__ */ React.createElement("span", { style: { color: T.text3 } }, " \xB7 early") : null, x.proj.limited ? /* @__PURE__ */ React.createElement("span", { style: { color: T.amber } }, " \xB7 limited county data") : null, /* @__PURE__ */ React.createElement("span", { style: { color: T.text4 } }, " \xB7 estimate, not a call")) : /* @__PURE__ */ React.createElement("div", { style: { marginTop: 6, fontSize: 11, color: T.text4 } }, x.measure ? "No forecast for ballot measures" : x.s.multi ? "No forecast \u2014 more than one winner" : "No forecast for this race"))
           ), isOpen && r && /* @__PURE__ */ React.createElement(RaceRow, { r, hist: hist[r.id], open: !0, onToggle: () => setOpen(null), calledAt: calledAt[r.id] }));
-        })))) : /* @__PURE__ */ React.createElement("div", { className: "en-pad", style: { padding: "28px 24px", color: T.text3, fontSize: 13 } }, STATE_ED ? `Loading ${STATE_NAMES[CLIENT.state] || CLIENT.state} races\u2026` : `The ${CLIENT.tab} list hasn't been added yet.`);
+        })))) : /* @__PURE__ */ React.createElement("div", { className: "en-pad", style: { padding: "28px 24px", color: T.text3, fontSize: 13 } }, STATE_ED ? `Loading ${STATE_NAMES[CLIENT.state] || CLIENT.state} races\u2026` : SBA_PICKS && SBA_PICKS.length ? `Loading ${CLIENT.tab}\u2026` : `The ${CLIENT.tab} list hasn't been added yet.`);
       }
       function useNarrow() {
         const [n, setN] = useState(() => typeof window != "undefined" && window.innerWidth < NARROW_BP);
