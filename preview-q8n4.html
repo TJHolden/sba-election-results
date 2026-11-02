@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261101215247">
+<meta name="build" content="20261101222656">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261101215247"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261101222656"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -400,7 +400,7 @@
               const i = rs.findIndex((r) => stopWhen([r]));
               i >= 0 && (need = i + 1);
             }
-            return limitHint.set(key, Math.min(MAX_LIMIT, Math.round(Math.min(rs.length, need) * 1.1) + 60)), saveLimits(), rs;
+            return rs.length && (limitHint.set(key, Math.min(MAX_LIMIT, Math.round(Math.min(rs.length, need) * 1.1) + 60)), saveLimits()), rs;
           }
           if (short || limit >= MAX_LIMIT) return Object.assign(rs, { truncated: !0 });
           limit = Math.min(MAX_LIMIT, limit * 4);
@@ -738,7 +738,10 @@
       function loadHist(y, ab) {
         if (y === 2020 && !HIST_2020.has(ab)) return Promise.resolve(null);
         const k = `${y}|${ab}`;
-        return histP[k] || (histP[k] = fetch(`hist/${y}/${ab}.json?v=2`).then((r) => r.ok ? r.json() : null).catch(() => (delete histP[k], null))), histP[k];
+        return histP[k] || (histP[k] = fetch(`hist/${y}/${ab}.json?v=2`).then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        }).catch(() => (delete histP[k], null))), histP[k];
       }
       const unitKey = (s) => normName(s).replace(/^saint/, "st"), townLoose = (s) => unitKey(String(s || "").trim().replace(/\s+(town|city|plantation|plt|township|twps?|gore|grant|location|purchase|unorganized territory|ut)$/i, ""));
       function regionOf(d, reg) {
@@ -1880,7 +1883,10 @@
       };
       let cfP = null;
       function loadCountyFeats() {
-        return cfP || (cfP = fetch("county-features.json?v=1").then((r) => r.ok ? r.json() : null).catch(() => (cfP = null, null))), cfP;
+        return cfP || (cfP = fetch("county-features.json?v=1").then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        }).catch(() => (cfP = null, null))), cfP;
       }
       const isModeled = (r) => r.level === "Federal" && (r.type === "Senate" || r.type === "House") || r.type === "Governor", runoffUnclear = (o, pr) => (o.abbr === "GA" || o.abbr === "LA") && pr && Math.max(pr.a1 || 0, pr.a2 || 0) < 50, UNIT_ALIAS = { SD: { shannon: "oglalalakota" } }, UNIT_MERGE = { IL: { chicago: "cook" } };
       function modelUnits(r, det, cf, base24, fy) {
@@ -3692,7 +3698,7 @@
             if (!data.length)
               !wasLive || !silent ? (setRaces([]), setApi("empty"), setApiMsg(`No races found for "${sq}". Try a month and year like "November 2026", a year, or a state and office like "Virginia Governor".`)) : (setApi("live"), setApiMsg("Refresh returned no races \u2014 showing last good data."));
             else {
-              if (setRaces(data), record(data, fresh), lastQ.current = sq.toLowerCase(), loadedQ.current = sq, setApi("live"), setRefreshedAt(/* @__PURE__ */ new Date()), setApiMsg(`${data.length.toLocaleString()} races for "${sq}"${failNote}${capNote}`), !failed.length) {
+              if (setRaces(data), record(data, fresh), lastQ.current = sq.toLowerCase(), loadedQ.current = sq, setApi("live"), setRefreshedAt(/* @__PURE__ */ new Date()), setApiMsg(`${data.length.toLocaleString()} races for "${sq}"${failNote}${capNote}`), !failed.length && !(data.capped && data.capped.length)) {
                 let sig = data.length;
                 for (const r of data) sig = (sig * 31 + r.v1 + r.v2 + r.rpt + (r.called ? 7 : 0)) % 1e12;
                 if (sig !== raceSigRef.current) {
@@ -3795,16 +3801,16 @@
             const ex = expectedVote(r, base24, fy);
             ex && (exp[r.id] = remainingOf(r, ex));
           }), { exp, proj: projectRaces(all, base24, fy) };
-        }, [all, base24, fy, anyVotes]), [cf, setCf] = useState(null);
+        }, [all, base24, fy, anyVotes]), [cf, setCf] = useState(null), [cfTry, setCfTry] = useState(0);
         useEffect(() => {
           if (!anyVotes || cf) return;
-          let on = !0;
+          let on = !0, rt = null;
           return loadCountyFeats().then((d) => {
-            on && d && setCf(d);
+            on && (d ? setCf(d) : cfTry < 4 && (rt = setTimeout(() => setCfTry((n) => n + 1), 2e4)));
           }), () => {
-            on = !1;
+            on = !1, rt && clearTimeout(rt);
           };
-        }, [anyVotes, cf]);
+        }, [anyVotes, cf, cfTry]);
         const [modelDet, setModelDet] = useState({}), modelDetRef = useRef({}), modelBusy = useRef(!1), allRef = useRef(all);
         allRef.current = all, useEffect(() => {
           if (!anyVotes) return;
