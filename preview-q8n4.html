@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261101171037">
+<meta name="build" content="20261101215247">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261101171037"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261101215247"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -367,7 +367,7 @@
         }
         throw last;
       }
-      const FIRST_LIMIT = 500, MAX_LIMIT = 1e4, SERVER_ROW_CAP = 4e3, STATE_ROWS_HINT = { AL: 16, AK: 77, AZ: 180, AR: 1317, CA: 245, CO: 237, DE: 80, CT: 366, DC: 1, FL: 181, HI: 65, GA: 264, ID: 431, IL: 394, IA: 139, KS: 251, KY: 3345, IN: 4147, ME: 277, LA: 936, MD: 452, MA: 288, MI: 344, MS: 134, MO: 257, MT: 63, MN: 4736, NV: 369, NE: 465, NH: 308, NJ: 14, NM: 429, NY: 256, ND: 522, NC: 1383, OH: 165, OK: 185, OR: 9, PA: 249, RI: 124, SD: 9, SC: 706, TN: 12, UT: 5, TX: 726, VT: 474, VA: 590, WV: 4, WI: 13, WA: 1435, WY: 8 }, limitHint = /* @__PURE__ */ new Map();
+      const FIRST_LIMIT = 500, MAX_LIMIT = 1e4, SERVER_ROW_CAP = 4e3, STATE_ROWS_HINT = { AL: 162, AK: 79, AZ: 180, AR: 1317, CA: 802, CO: 305, DE: 80, CT: 366, DC: 362, FL: 693, HI: 65, GA: 264, ID: 508, IL: 652, IA: 3249, KS: 251, KY: 3533, IN: 4147, ME: 584, LA: 936, MD: 452, MA: 297, MI: 761, MS: 134, MO: 257, MT: 149, MN: 4737, NV: 375, NE: 465, NH: 308, NJ: 337, NM: 429, NY: 256, ND: 522, NC: 1383, OH: 165, OK: 185, OR: 96, PA: 249, RI: 456, SD: 153, SC: 842, TN: 129, UT: 467, TX: 726, VT: 476, VA: 590, WV: 323, WI: 134, WA: 788, WY: 90 }, limitHint = /* @__PURE__ */ new Map();
       try {
         const saved = JSON.parse(localStorage.getItem("en:limits") || "null");
         saved && saved.t && Date.now() - saved.t < 14 * 864e5 && Object.entries(saved.v || {}).forEach(([k, v]) => limitHint.set(k, v));
