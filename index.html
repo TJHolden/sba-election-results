@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261102175601">
+<meta name="build" content="20261102181544">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261102175601"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261102181544"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -216,7 +216,7 @@
       }
       const CIVIC = "https://civicapi.org/api/v2", SENATE_HOLDOVERS = { D: 34, R: 31, note: "Seats not up in 2026: 32 Democrats + 2 independents who caucus with them \xB7 31 Republicans (verified Oct 22, 2026 \u2014 270toWin, Ballotpedia)" }, CHAMBER = { Senate: { total: 100, majority: 51 }, House: { total: 435, majority: 218 } }, GOV_TOTAL_2026 = 36, NO_ACC = {}, POLLS_CLOSE_2026 = (() => {
         const t = (h) => new Date(Date.UTC(2026, 10, 3, Math.floor(h) + 5, Math.round(h % 1 * 60))).toISOString();
-        return Object.fromEntries(Object.entries({ AL: [20], AK: [24, 25], AZ: [21], AR: [20.5], CA: [23], CO: [21], CT: [20], DE: [20], DC: [20], FL: [19, 20], GA: [19], HI: [24], ID: [22, 23], IL: [20], IN: [18, 19], IA: [21], KS: [20, 21], KY: [18, 19], LA: [21], ME: [20], MD: [20], MA: [20], MI: [20, 21], MN: [21], MS: [20], MO: [20], MT: [22], NE: [21], NV: [22], NH: [20], NJ: [20], NM: [21], NY: [21], NC: [19.5], ND: [20, 21], OH: [19.5], OK: [20], OR: [23, 22], PA: [20], RI: [20], SC: [19], SD: [20, 21], TN: [20], TX: [20, 21], UT: [22], VT: [19], VA: [19], WA: [23], WV: [19.5], WI: [21], WY: [21] }).map(([ab, hs]) => [ab, hs.map(t)]));
+        return Object.fromEntries(Object.entries({ AL: [20], AK: [24, 25], AZ: [21], AR: [20.5], CA: [23], CO: [21], CT: [20], DE: [20], DC: [20], FL: [19, 20], GA: [19], HI: [24], ID: [22, 23], IL: [20], IN: [18, 19], IA: [21], KS: [20, 21], KY: [18, 19], LA: [21], ME: [20], MD: [20], MA: [20], MI: [20, 21], MN: [21], MS: [20], MO: [20], MT: [22], NE: [21, 22], NV: [22], NH: [20], NJ: [20], NM: [21], NY: [21], NC: [19.5], ND: [20, 21], OH: [19.5], OK: [20], OR: [23, 22], PA: [20], RI: [20], SC: [19], SD: [20, 21], TN: [20, 19], TX: [20, 21], UT: [22], VT: [19], VA: [19], WA: [23], WV: [19.5], WI: [21], WY: [21] }).map(([ab, hs]) => [ab, hs.map(t)]));
       })(), POLLS_SPLIT = {
         FL: "Western Panhandle (Central time)",
         IN: "Northwest (Gary area) and southwest (Evansville area) counties",
@@ -226,9 +226,11 @@
         TX: "El Paso & Hudspeth counties",
         ND: "Southwest North Dakota (Mountain time)",
         SD: "Western South Dakota (Mountain time)",
+        NE: "Western Nebraska panhandle (Mountain time)",
         ID: "Northern Panhandle (Pacific time)",
         OR: "Malheur County (Mountain time)",
-        AK: "Aleutian Islands west of 169.5\xB0W"
+        AK: "Aleutian Islands west of 169.5\xB0W",
+        TN: "East Tennessee (Eastern time)"
       }, CALL_TYPES = [["Senate", "U.S. Senate"], ["House", "U.S. House"], ["Governor", "Governor"], ["Statewide", "Other statewide"], ["State Legislative", "State leg."], ["Ballot Measure", "Ballot"], ["Local", "Local"]], callTypeOf = (r) => r.level === "Federal" && r.type === "Senate" ? "Senate" : r.level === "Federal" && r.type === "House" ? "House" : r.type === "Governor" ? "Governor" : r.level === "Statewide" ? "Statewide" : r.level === "State Legislative" ? "State Legislative" : r.level === "Ballot Measure" ? "Ballot Measure" : r.level === "Local" ? "Local" : "Other", CALL_TYPES_DEFAULT = ["Senate", "House", "Governor", "Statewide", "State Legislative", "Ballot Measure"], HASH_MODES = { senate: "Senate", governor: "Governor", house: "House", statesenate: "State Leg:Senate", statehouse: "State Leg:House", stateleg: "State Leg:Both", ballot: "Ballot", all: "All" }, modeToHash = (m) => Object.keys(HASH_MODES).find((k) => HASH_MODES[k] === m) || "", typeToHash = (t) => t === "Senate" ? "senate" : t === "Governor" ? "governor" : t === "House" ? "house" : t === "State Senate" ? "statesenate" : t === "State House" || t === "State Assembly" ? "statehouse" : t === "Ballot" ? "ballot" : "";
       function parseHash(h) {
         const parts = (h || "").replace(/^#\/?/, "").split("/").map((x) => x.trim().toLowerCase()).filter(Boolean);
