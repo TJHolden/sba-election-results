@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261102181544">
+<meta name="build" content="20261102182126">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261102181544"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261102182126"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -355,7 +355,10 @@
           ...ballot && isLocalMeasure(raw, sn, name) ? { localMeasure: !0 } : {}
         };
       }
-      const isChamberRow = (r) => {
+      const isPlaceholderRow = (r) => {
+        const cs = (r.candidates || []).filter((c) => c && c.name);
+        return cs.length ? cs.every((c) => /^test\s+(democrat|republican|independent|green|libertarian|candidate|yes|no)\b/i.test(String(c.name).trim())) : !1;
+      }, isChamberRow = (r) => {
         const cs = r.candidates || [];
         if (!cs.length) return !1;
         if (typeof r.seats == "number" && cs.every((c) => c && "seats" in c)) return !0;
@@ -446,7 +449,7 @@
       async function fetchAll(query, onProgress, onPartial, onlyStates = null) {
         const dq = parseDateQuery(query);
         if (!dq)
-          return Object.assign((await fetchPages(query, onProgress)).filter((r) => !isChamberRow(r)).map(normalize), { failed: [], capped: [] });
+          return Object.assign((await fetchPages(query, onProgress)).filter((r) => !isChamberRow(r) && !isPlaceholderRow(r)).map(normalize), { failed: [], capped: [] });
         const startMs = Date.UTC(dq.y, (dq.m || 1) - 1, 1), endMs = dq.m ? Date.UTC(dq.y, dq.m, 1) : Date.UTC(dq.y + 1, 0, 1), inRange = (r) => {
           if (!r.election_date) return !1;
           const t = new Date(r.election_date).getTime();
@@ -460,7 +463,7 @@
             const last = page[page.length - 1];
             return !!last && !!last.election_date && new Date(last.election_date).getTime() < startMs;
           }, keep = (r) => {
-            r.country && r.country !== "US" || r.province && r.province !== abbr || isChamberRow(r) || inRange(r) && seen.set(r.id, r);
+            r.country && r.country !== "US" || r.province && r.province !== abbr || isChamberRow(r) || isPlaceholderRow(r) || inRange(r) && seen.set(r.id, r);
           };
           try {
             const rs = await fetchPages({ province: abbr }, () => onProgress && onProgress(seen.size, null), STATE_PAGE_CAP, pastRange);
@@ -486,7 +489,7 @@
                 return !!last && !!last.election_date && new Date(last.election_date).getTime() < startMs;
               });
               rs.forEach((r) => {
-                r.country && r.country !== "US" || r.province && r.province !== abbr || isChamberRow(r) || inRange(r) && seen.set(r.id, r);
+                r.country && r.country !== "US" || r.province && r.province !== abbr || isChamberRow(r) || isPlaceholderRow(r) || inRange(r) && seen.set(r.id, r);
               }), rs.truncated && capped.push(abbr);
             } catch {
               failed.push(abbr);
@@ -583,7 +586,7 @@
             return (await fetchPages({ province: abbr, query: office }, null, 40, (page) => {
               const last = page[page.length - 1];
               return !!last && !!last.election_date && new Date(last.election_date).getUTCFullYear() < cutoff;
-            })).filter((r) => !isChamberRow(r) && r.province === abbr && r.country === "US" && (r.election_type || "").toLowerCase() !== "primary" && !/primary|convention|runoff/i.test(r.election_name || "") && (!r.election_date || new Date(r.election_date).getUTCMonth() === 10)).map(normalize);
+            })).filter((r) => !isChamberRow(r) && !isPlaceholderRow(r) && r.province === abbr && r.country === "US" && (r.election_type || "").toLowerCase() !== "primary" && !/primary|convention|runoff/i.test(r.election_name || "") && (!r.election_date || new Date(r.election_date).getUTCMonth() === 10)).map(normalize);
           } catch (e) {
             throw officePoolCache.delete(key), e;
           }
