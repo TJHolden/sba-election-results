@@ -877,22 +877,8 @@
  {
   "st": "GA",
   "type": "State House",
-  "dist": "44",
-  "name": "Don Parsons",
-  "polled": true
- },
- {
-  "st": "GA",
-  "type": "State House",
   "dist": "46",
   "name": "John Carson",
-  "polled": true
- },
- {
-  "st": "GA",
-  "type": "State House",
-  "dist": "53",
-  "name": "Deborah Silcox",
   "polled": true
  },
  {
