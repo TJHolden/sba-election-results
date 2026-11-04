@@ -45,6 +45,9 @@ jobs:
           while :; do
             n=$((n+1))
             echo "--- pull #$n at $(date -u +%H:%M:%SZ) ---"
+            # Pick up code pushed since this run started: checkout happens once,
+            # so without this the loop would keep running the version it began with.
+            git pull --rebase --autostash -q || true
             python3 tools/pull_sba.py || echo "pull failed, will retry next cycle"
             if [ -n "$(git status --porcelain results.json)" ]; then
               MSG=$(python3 -c "import json;d=json.load(open('results.json'));print(f\"SBA results: {d['counts']['withResult']}/{d['counts']['total']} scored, states: {','.join(d['wired']) or 'none'}\")")
