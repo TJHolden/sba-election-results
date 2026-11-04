@@ -37,6 +37,7 @@ STATES = {
         "senate": r"^State Senate\s*-\s*District\s*(\d+)",
     },
     "AL": {"fetch": "alabama"},
+    "NY": {"fetch": "newyork"},
 }
 
 TIMEOUT = 45
@@ -402,9 +403,146 @@ def fetch_alabama():
     return index, every, None
 
 
+NY_URL = "https://nyenr.elections.ny.gov/"
+NY_CONTEST = {"State Senate": "5", "State House": "6"}   # NY's lower house is the Assembly
+
+
+class _NYParser(HTMLParser):
+    """Rows of New York's results tables, plus the form's hidden fields."""
+
+    def __init__(self):
+        HTMLParser.__init__(self)
+        self.rows = []          # [[cell, ...], ...] in document order
+        self.hidden = {}
+        self._cells = None
+        self._buf = []
+        self._in_cell = False
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag == "input" and a.get("type") == "hidden" and a.get("name"):
+            self.hidden[a["name"]] = a.get("value", "")
+        elif tag == "tr":
+            self._cells = []
+        elif tag in ("td", "th"):
+            self._in_cell = True
+            self._buf = []
+
+    def handle_data(self, data):
+        if self._in_cell:
+            self._buf.append(data)
+
+    def handle_entityref(self, name):
+        if self._in_cell and name == "nbsp":
+            self._buf.append(" ")
+
+    def handle_endtag(self, tag):
+        if tag in ("td", "th") and self._in_cell:
+            if self._cells is not None:
+                self._cells.append(re.sub(r"\s+", " ", "".join(self._buf)).strip())
+            self._in_cell = False
+            self._buf = []
+        elif tag == "tr" and self._cells is not None:
+            if any(self._cells):
+                self.rows.append(self._cells)
+            self._cells = None
+
+
+NY_HEAD = re.compile(r"(\d+)\w\w\s+(Senate|Assembly)\s+District", re.I)
+NY_REPORTING = re.compile(r"Districts Reporting:\s*([\d,]+)\s*of\s*([\d,]+)", re.I)
+NY_PARTY = {"DEM": "D", "REP": "R", "CON": "C", "WOR": "WF", "LBT": "L", "GRE": "G"}
+
+
+def fetch_newyork():
+    """New York, one request per chamber.
+
+    New York uses fusion voting: a candidate appears on several party lines and
+    the table repeats them. The per-candidate column is the real total, so read
+    that and ignore the party-line rows, plus the Blank and Void rows.
+    """
+    import urllib.parse
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+    hdrs = {"User-Agent": "sba-election-results/1.0 (github actions)"}
+
+    def post(form):
+        req = urllib.request.Request(
+            NY_URL, data=urllib.parse.urlencode(form).encode(), headers=dict(hdrs))
+        req.add_header("Content-Type", "application/x-www-form-urlencoded")
+        with opener.open(req, timeout=TIMEOUT) as r:
+            return r.read().decode("utf-8", errors="replace")
+
+    with opener.open(urllib.request.Request(NY_URL, headers=dict(hdrs)),
+                     timeout=TIMEOUT) as r:
+        html = r.read().decode("utf-8", errors="replace")
+
+    index, every = {}, []
+    for chamber, code in NY_CONTEST.items():
+        p = _NYParser(); p.feed(html)
+        base = dict(p.hidden)
+
+        # Choosing a contest repopulates the district list, so take that step
+        # on its own rather than posting a district the page hasn't offered yet.
+        form = dict(base)
+        form.update({"__EVENTTARGET": "ctl00$HomePage$ddContest", "__EVENTARGUMENT": "",
+                     "ctl00$HomePage$ddContest": code,
+                     "ctl00$HomePage$ddDistrict": "0",
+                     "ctl00$HomePage$ddCountyBreakDown": "N"})
+        step = post(form)
+
+        p2 = _NYParser(); p2.feed(step)
+        form = dict(p2.hidden)
+        form.update({"__EVENTTARGET": "", "__EVENTARGUMENT": "",
+                     "ctl00$HomePage$ddContest": code,
+                     "ctl00$HomePage$ddDistrict": "-1",     # every district at once
+                     "ctl00$HomePage$ddCountyBreakDown": "N",
+                     "ctl00$HomePage$btnGo": "Search"})
+        page = post(form)
+
+        p3 = _NYParser(); p3.feed(page)
+        cur = None
+        for row in p3.rows:
+            if len(row) == 1:
+                m = NY_HEAD.search(row[0])
+                if m:
+                    rep = NY_REPORTING.search(row[0])
+                    cur = {"dist": m.group(1), "name": m.group(0),
+                           "ru": _al_num(rep.group(1)) if rep else 0,
+                           "tu": _al_num(rep.group(2)) if rep else 0,
+                           "c": []}
+                    label = "%s %s District %s" % ("New York", m.group(2), m.group(1))
+                    cur["label"] = label
+                    index_key = (chamber, m.group(1))
+                    cur["key"] = index_key
+                continue
+            if cur is None or len(row) < 8:
+                continue
+            nm = row[0].strip()
+            if not nm or nm.lower() in ("candidate", "blank", "void"):
+                continue
+            cur["c"].append({"n": nm, "p": NY_PARTY.get(row[1].strip().upper(), ""),
+                             "inc": False, "v": _al_num(row[7]), "w": False,
+                             "wi": bool(re.match(r"^write[- ]?in", nm, re.I))})
+            # keep the newest version of this district
+            total = sum(c["v"] for c in cur["c"])
+            race = {"race": cur["label"], "v": total,
+                    "ru": cur["ru"], "tu": cur["tu"], "c": list(cur["c"])}
+            index[cur["key"]] = race
+            cur["race"] = race
+
+    for (chamber, dist), race in index.items():
+        every.append({"st": "NY", "n": race["race"], "d": dist,
+                      "ru": race["ru"], "tu": race["tu"], "v": race["v"],
+                      "c": [[c["n"], c["p"], c["v"], 0, 0, 1 if c["wi"] else 0]
+                            for c in race["c"]]})
+    print("NY: %d districts indexed" % len(index), file=sys.stderr)
+    return index, every, None
+
+
 SOURCE_PAGES = {
     "AL": "https://www2.alabamavotes.gov/electionNight/"
           "statewideResultsByContest.aspx?ecode=1001305",
+    "NY": NY_URL,
 }
 
 
@@ -541,6 +679,8 @@ def main():
         try:
             if cfg.get("fetch") == "alabama":
                 index, every, a = fetch_alabama()
+            elif cfg.get("fetch") == "newyork":
+                index, every, a = fetch_newyork()
             else:
                 index, every, a = fetch_state(ab, cfg)
             state_data[ab] = index
