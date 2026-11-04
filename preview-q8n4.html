@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261103190533">
+<meta name="build" content="20261103193220">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261103190533"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261103193220"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -370,13 +370,37 @@
         if (typeof r.seats == "number" && cs.every((c) => c && "seats" in c)) return !0;
         const nm = (c) => String(c && c.name || "").trim().toLowerCase();
         return cs.length >= 2 && cs.every((c) => nm(c) && nm(c) === String(c.party || "").trim().toLowerCase());
-      }, sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      }, sleep = (ms) => new Promise((r) => setTimeout(r, ms)), GATE_N = 4, GATE_GAP_MIN = 120, GATE_GAP_MAX = 8e3, GATE_GAP_START = 1e3;
+      let gateActive = 0, gateLast = 0, gateGap = GATE_GAP_START, gateQ = [];
+      const gatePump = () => {
+        for (; gateActive < GATE_N && gateQ.length; ) {
+          const now = Date.now(), wait = gateLast + gateGap - now;
+          if (wait > 0) {
+            setTimeout(gatePump, wait);
+            return;
+          }
+          gateLast = Date.now(), gateActive++, gateQ.shift()();
+        }
+      }, gateSlot = () => new Promise((res) => {
+        gateQ.push(res), gatePump();
+      }), gateDone = (ok) => {
+        gateActive--, gateGap = ok ? Math.max(GATE_GAP_MIN, Math.round(gateGap * 0.6)) : Math.min(GATE_GAP_MAX, Math.max(600, Math.round(gateGap * 2))), gatePump();
+      };
+      async function civicFetch(url, opts) {
+        await gateSlot();
+        try {
+          const r = await fetch(url, opts);
+          return gateDone(r.ok), r;
+        } catch (e) {
+          throw gateDone(!1), e;
+        }
+      }
       async function fetchJSON(url, attempts = 4) {
         let last;
         for (let i = 0; i < attempts; i++) {
           const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 25e3);
           try {
-            const res = await fetch(url, { signal: ctl.signal });
+            const res = await civicFetch(url, { signal: ctl.signal });
             if (clearTimeout(tm), res.ok) return res.json();
             const err = new Error(`HTTP ${res.status}`);
             if (err.status = res.status, res.status >= 400 && res.status < 500) throw err;
@@ -493,7 +517,7 @@
         }, runGroup = async (list) => {
           if (!list.length) return;
           const L = [...list].sort(byClose);
-          await Promise.all([pmap(L.filter(isBig), doState, 1), pmap(L.filter((ab) => !isBig(ab)), doState, 3)]);
+          await Promise.all([pmap(L.filter(isBig), doState, 1), pmap(L.filter((ab) => !isBig(ab)), doState, 2)]);
         }, isHot = (ab) => closesAt(ab) <= nowMs + HOT_LEAD_MS;
         if (await runGroup(all.filter(isHot)), await runGroup(all.filter((ab) => !isHot(ab))), failed.length && failed.length < 10) {
           const retry = failed.splice(0);
@@ -544,7 +568,7 @@
         const ac = typeof AbortController != "undefined" ? new AbortController() : null, tm = ac ? setTimeout(() => ac.abort(), 15e3) : null;
         let res, raw;
         try {
-          if (res = await fetch(`${CIVIC}/race/${id}`, ac ? { signal: ac.signal } : void 0), !res.ok) throw new Error(`HTTP ${res.status}`);
+          if (res = await civicFetch(`${CIVIC}/race/${id}`, ac ? { signal: ac.signal } : void 0), !res.ok) throw new Error(`HTTP ${res.status}`);
           raw = await res.json();
         } finally {
           tm && clearTimeout(tm);
@@ -3706,15 +3730,19 @@
               const ids = [.../* @__PURE__ */ new Set([...TRACK_IDS || [], ...lsGet(trackKey(), 1296e5) || []])];
               if (ids.length) {
                 const built = [];
+                let paintT = null;
+                const paint = () => {
+                  paintT = null, built.length && (fastRef.current = [...built], setRaces([...built]), setApi("live"), apiRef.current = "live", setRefreshedAt(/* @__PURE__ */ new Date()));
+                };
                 if (await pmap(ids.slice(0, 300), async (id) => {
                   try {
-                    const res = await fetch(`${CIVIC}/race/${id}`);
+                    const res = await civicFetch(`${CIVIC}/race/${id}`);
                     if (!res.ok) return;
                     const n = normalize(await res.json());
-                    n && n.id != null && built.push(n);
+                    n && n.id != null && (built.push(n), paintT || (paintT = setTimeout(paint, 500)));
                   } catch {
                   }
-                }, 8), built.length && (fastRef.current = built, setRaces(built), record(built, !1), setApi("live"), apiRef.current = "live", setRefreshedAt(/* @__PURE__ */ new Date()), ONLY && TRACK_IDS.length && built.length >= Math.ceil(TRACK_IDS.length * 0.8))) {
+                }, 3), paintT && (clearTimeout(paintT), paintT = null), built.length && (fastRef.current = built, setRaces(built), record(built, !1), setApi("live"), apiRef.current = "live", setRefreshedAt(/* @__PURE__ */ new Date()), ONLY && TRACK_IDS.length && built.length >= Math.ceil(TRACK_IDS.length * 0.8))) {
                   lastQ.current = sq.toLowerCase(), loadedQ.current = sq, setApiMsg(`${built.length.toLocaleString()} ${STATE_NAMES[CLIENT.state] || CLIENT.state} races`), setProg(null), setRefreshing(!1), loadingRef.current = !1, lastFullRef.current = Date.now();
                   return;
                 }
@@ -3765,7 +3793,7 @@
               }, sbaIds = sbaRef.current, tracked = (r) => r.level === "Federal" || ONLY && r.abbr === CLIENT.state || !!(sbaIds && sbaIds.has(r.id)), always = (r) => ONLY && r.abbr === CLIENT.state || !!(sbaIds && sbaIds.has(r.id)), need = data.filter((r) => always(r) || tracked(r) && (failedSet.has(r.abbr) || r.v1 + r.v2 === 0 && closed(r.abbr))).slice(0, 300);
               need.length && await pmap(need, async (r) => {
                 try {
-                  const res = await fetch(`${CIVIC}/race/${r.id}`);
+                  const res = await civicFetch(`${CIVIC}/race/${r.id}`);
                   if (!res.ok) return;
                   const n = normalize(await res.json());
                   if (!n || n.v1 + n.v2 <= r.v1 + r.v2) return;
@@ -3789,7 +3817,7 @@
                   });
                 } catch {
                 }
-              }, 8);
+              }, 3);
             } catch {
             }
             const capped = data.capped || [], capNote = capped.length ? ` \xB7 ${capped.join(", ")}: every federal, state and ballot race loaded, local races only partly (civicAPI lists 4,000+)` : "", failNote = failed.length ? ` \u2014 ${failed.length === 1 ? failed[0] + " didn't answer" : failed.join(", ") + " didn't answer"}; retrying on the next refresh` : "";
@@ -3952,7 +3980,7 @@
                       const o = modelDetRef.current[r.id];
                       modelDetRef.current[r.id] = o ? { ...o, t: Date.now() - 12e4 } : { t: Date.now(), regions: null };
                     }
-                }, 3), alive && setModelDet({ ...modelDetRef.current });
+                }, 2), alive && setModelDet({ ...modelDetRef.current });
               } finally {
                 modelBusy.current = !1;
               }
