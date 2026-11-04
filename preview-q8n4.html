@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261103181008">
+<meta name="build" content="20261103181556">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261103181008"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261103181556"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -3732,7 +3732,7 @@
               const failedSet = new Set(failed), pcMap = pollsCloseRef.current || {}, nowT = Date.now(), closed = (ab) => {
                 const c = pcMap[ab], t = c ? new Date(c).getTime() : NaN;
                 return Number.isFinite(t) && nowT >= t;
-              }, sbaIds = sbaRef.current, tracked = (r) => r.level === "Federal" || ONLY && r.abbr === CLIENT.state || !!(sbaIds && sbaIds.has(r.id)), need = data.filter((r) => tracked(r) && (failedSet.has(r.abbr) || r.v1 + r.v2 === 0 && closed(r.abbr))).slice(0, 300);
+              }, sbaIds = sbaRef.current, tracked = (r) => r.level === "Federal" || ONLY && r.abbr === CLIENT.state || !!(sbaIds && sbaIds.has(r.id)), always = (r) => ONLY && r.abbr === CLIENT.state || !!(sbaIds && sbaIds.has(r.id)), need = data.filter((r) => always(r) || tracked(r) && (failedSet.has(r.abbr) || r.v1 + r.v2 === 0 && closed(r.abbr))).slice(0, 300);
               need.length && await pmap(need, async (r) => {
                 try {
                   const res = await fetch(`${CIVIC}/race/${r.id}`);
