@@ -863,13 +863,6 @@
  },
  {
   "st": "AL",
-  "type": "State Senate",
-  "dist": "2",
-  "name": "John Roberts",
-  "polled": true
- },
- {
-  "st": "AL",
   "type": "State House",
   "dist": "21",
   "name": "Rex Reynolds",
