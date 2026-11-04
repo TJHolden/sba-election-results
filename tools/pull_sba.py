@@ -201,8 +201,86 @@ def _al_num(s):
     return int(s) if s else 0
 
 
+def _al_export(opener, hdrs, html):
+    """Alabama's own Export Data control: every contest in one xlsx.
+
+    The page's pager is postback-only and walking its 20 pages took longer than
+    a polling cycle. This control returns the whole election in one request, so
+    Alabama costs two requests instead of twenty.
+    """
+    import urllib.parse
+    p = _ALParser()
+    p.feed(html)
+    form = dict(p.hidden)
+    form["__EVENTTARGET"] = "hlnkExportData"
+    form["__EVENTARGUMENT"] = ""
+    req = urllib.request.Request(AL_URL, data=urllib.parse.urlencode(form).encode(),
+                                 headers=dict(hdrs))
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    with opener.open(req, timeout=AL_REQ_TIMEOUT) as r:
+        blob = r.read()
+        ctype = r.headers.get("Content-Type", "")
+    if "spreadsheet" not in ctype and not blob.startswith(b"PK"):
+        raise ValueError("export did not return a workbook (%s)" % ctype[:40])
+
+    import io
+    from openpyxl import load_workbook
+    wb = load_workbook(io.BytesIO(blob), read_only=True, data_only=True)
+    ws = wb[wb.sheetnames[0]]
+
+    rows = []
+    for row in ws.iter_rows(values_only=True):
+        if row and any(c not in (None, "") for c in row):
+            rows.append(["" if c is None else str(c).strip() for c in row])
+    wb.close()
+    if not rows:
+        raise ValueError("export workbook was empty")
+
+    header = [h.lower() for h in rows[0]]
+    print("AL export: %d rows, columns = %s" % (len(rows), rows[0]), file=sys.stderr)
+    for sample in rows[1:4]:
+        print("AL sample : %s" % (sample,), file=sys.stderr)
+
+    def col(*names):
+        for i, h in enumerate(header):
+            for n in names:
+                if n in h:
+                    return i
+        return None
+
+    i_contest = col("contest", "office", "race")
+    i_cand = col("candidate", "name")
+    i_party = col("party")
+    i_votes = col("vote")
+    if i_contest is None or i_cand is None or i_votes is None:
+        raise ValueError("unexpected export columns: %s" % rows[0])
+
+    # The export may be county-level; fold it to one row per candidate.
+    tally = {}
+    order = []
+    for r in rows[1:]:
+        if max(i_contest, i_cand, i_votes) >= len(r):
+            continue
+        contest = r[i_contest].strip()
+        cand = r[i_cand].strip()
+        if not contest or not cand:
+            continue
+        party = r[i_party].strip() if i_party is not None and i_party < len(r) else ""
+        key = (contest, cand)
+        if key not in tally:
+            tally[key] = {"party": party, "votes": 0}
+            order.append(key)
+        tally[key]["votes"] += _al_num(r[i_votes])
+
+    contests = {}
+    for contest, cand in order:
+        contests.setdefault(contest, []).append(
+            (cand, tally[(contest, cand)]["party"], tally[(contest, cand)]["votes"]))
+    return contests
+
+
 def fetch_alabama():
-    """Walk Alabama's paged results and return (pick index, every contest, asOf)."""
+    """Alabama's results, by its own export; falls back to walking the pager."""
     import urllib.parse
     opener = urllib.request.build_opener(
         urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
@@ -218,6 +296,43 @@ def fetch_alabama():
     started = time.time()
     html = get(AL_URL)
     index, every, seen = {}, [], set()
+
+    try:
+        contests = _al_export(opener, hdrs, html)
+        for name, rows in contests.items():
+            cands = []
+            for cname, pty_raw, votes in rows:
+                m = re.match(r"^(.*?)\s*\((\w+)\)\s*$", cname)
+                nm = (m.group(1) if m else cname).strip()
+                code = (m.group(2) if m else pty_raw or "").upper()
+                cands.append({"n": nm, "p": AL_PARTY.get(code, ""), "inc": False,
+                              "v": votes, "w": False,
+                              "wi": bool(re.match(r"^write[- ]?in$", nm, re.I))})
+            if not cands:
+                continue
+            total = sum(c["v"] for c in cands)
+            every.append({"st": "AL", "n": name, "d": district_of(name),
+                          "ru": 0, "tu": 0, "v": total,
+                          "c": [[c["n"], c["p"], c["v"], 0, 0, 1 if c["wi"] else 0]
+                                for c in cands]})
+            race = {"race": name, "v": total, "ru": 0, "tu": 0, "c": cands}
+            m = re.match(r"^STATE REPRESENTATIVE,?\s*DISTRICT\s*(\d+)", name, re.I)
+            if m:
+                index[("State House", m.group(1))] = race
+            else:
+                m = re.match(r"^STATE SENATOR,?\s*DISTRICT\s*(\d+)", name, re.I)
+                if m:
+                    index[("State Senate", m.group(1))] = race
+        print("AL: export gave %d contests, %d legislative districts (%.0fs)"
+              % (len(every), len(index), time.time() - started), file=sys.stderr)
+        if index:
+            return index, every, None
+        print("AL: export had no legislative districts — walking the pager",
+              file=sys.stderr)
+        index, every, seen = {}, [], set()
+    except Exception as e:
+        print("AL: export failed (%s) — walking the pager" % str(e)[:90],
+              file=sys.stderr)
 
     for page_no in range(AL_MAX_PAGES):
         if time.time() - started > AL_BUDGET:

@@ -32,6 +32,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install the spreadsheet reader
+        run: pip install --quiet openpyxl
+
       - name: Pull state feeds until the deadline
         env:
           MINUTES: ${{ github.event.inputs.minutes || '1' }}
