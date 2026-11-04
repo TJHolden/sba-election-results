@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261103185232">
+<meta name="build" content="20261103185635">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261103185232"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261103185635"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -85,7 +85,7 @@
   });
   var define_TRACK_IDS_default, init_define_TRACK_IDS = __esm({
     "<define:__TRACK_IDS__>"() {
-      define_TRACK_IDS_default = [];
+      define_TRACK_IDS_default = [126817, 126820, 126826, 126837, 126886, 126905, 132459, 149175, 149179, 149190, 149199, 149202, 149213, 149216, 149224, 149227, 151507, 151517, 151518, 151526, 151530, 151545, 151546, 151550, 151552, 151557, 151558, 151559, 151568, 151573, 151578, 151584, 151589, 151599, 151601, 151602, 151604, 151605, 151608, 151654, 151655, 151669, 151676, 151683, 151692, 151700, 151702, 151706, 151710, 151714, 151731, 152711, 152737, 152822, 152850, 152852, 154301, 154311, 154341, 154371, 154375, 154392, 154829, 154833, 154841, 154892, 154902, 155344, 155356, 155374, 155377, 155404, 155422, 155622, 155623, 155624, 155625, 155631, 155632, 155633, 155676, 155704, 155725, 155727, 155734, 157803, 157810, 157822, 157840, 157841, 157849, 157851, 157863, 157873, 157883, 157958, 157961, 157997, 158002, 159202, 159207, 159208, 159209, 159211, 159217, 159219, 159222, 159223, 990000168, 990000211, 990000213, 990000235, 990000236, 990000255, 990000275, 990000281, 990000308, 990000364, 990000383, 990000392, 990000396, 990000412, 990000414, 990000418, 990000422, 990000433];
     }
   });
   var require_app_src = __commonJS({
@@ -3703,7 +3703,7 @@
           }
           if (!silent && !wasLive ? (setApi("loading"), setApiMsg(""), setProg({ loaded: 0, total: null }), setRaces([])) : (setRefreshing(!0), silent || setProg({ loaded: 0, total: null })), fastRef.current = null, !silent)
             try {
-              const ids = TRACK_IDS && TRACK_IDS.length ? TRACK_IDS : lsGet("trackids", 1296e5) || [];
+              const ids = [.../* @__PURE__ */ new Set([...TRACK_IDS || [], ...lsGet("trackids", 1296e5) || []])];
               if (ids.length) {
                 const built = [];
                 if (await pmap(ids.slice(0, 300), async (id) => {
