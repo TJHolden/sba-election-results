@@ -118,30 +118,35 @@ def same_person(a, b):
     return fa[0] == fb[0] and (len(fa) <= 2 or len(fb) <= 2)
 
 
+def district_of(name):
+    m = re.search(r"District\s*(\d+[A-Z]?)\s*$", name, re.I)
+    if m:
+        return m.group(1)
+    m = re.search(r"(\d+[A-Z]?)\s*$", name)
+    return m.group(1) if m else ""
+
+
 def fetch_state(ab, cfg):
+    """Return (pick index, every contest, asOf).
+
+    The pick index is keyed by (chamber, district) for scoring the SBA list.
+    The contest list is every race the state publishes, which the tracker needs
+    to draw its map and seat counts — not just the ones SBA backs.
+    """
     base = "https://%s/results/public/api" % cfg["host"]
     data = get_json("%s/elections/%s/%s/data" % (base, cfg["juris"], cfg["election"]))
     items = data.get("ballotItems") or []
     house_re = re.compile(cfg["house"], re.I)
     senate_re = re.compile(cfg["senate"], re.I)
 
-    races = {}
+    index, every = {}, []
     as_of = None
     for x in items:
         name = en(x.get("name"))
         rs = x.get("reportingStatus") or {}
         if rs.get("asOf") and (as_of is None or rs["asOf"] > as_of):
             as_of = rs["asOf"]
-        key = None
-        m = house_re.match(name)
-        if m:
-            key = ("State House", m.group(1))
-        else:
-            m = senate_re.match(name)
-            if m:
-                key = ("State Senate", m.group(1))
-        if not key:
-            continue
+
         opts = ((x.get("summaryResults") or {}).get("ballotOptions")) or []
         cands = []
         for o in opts:
@@ -152,14 +157,35 @@ def fetch_state(ab, cfg):
                 "w": bool(o.get("isWinner")),
                 "wi": bool(o.get("isWriteIn")),
             })
-        races[key] = {
+
+        race = {
             "race": name,
             "v": x.get("voteTotal") or 0,
             "ru": rs.get("reportingUnits") or 0,
             "tu": rs.get("totalUnits") or 0,
             "c": cands,
         }
-    return races, as_of
+
+        every.append({
+            "st": ab,
+            "n": name,
+            "d": district_of(name),
+            "ru": race["ru"],
+            "tu": race["tu"],
+            "v": race["v"],
+            "c": [[c["n"], c["p"], c["v"], 1 if c["w"] else 0,
+                   1 if c["inc"] else 0, 1 if c["wi"] else 0] for c in cands],
+        })
+
+        m = house_re.match(name)
+        if m:
+            index[("State House", m.group(1))] = race
+        else:
+            m = senate_re.match(name)
+            if m:
+                index[("State Senate", m.group(1))] = race
+
+    return index, every, as_of
 
 
 def assess(pick, race):
@@ -210,14 +236,16 @@ def main():
     with open(os.path.join(ROOT, "picks.json")) as f:
         picks = json.load(f)
 
-    state_data, errors, as_of = {}, {}, None
+    state_data, every_race, errors, as_of = {}, [], {}, None
     for ab, cfg in STATES.items():
         try:
-            races, a = fetch_state(ab, cfg)
-            state_data[ab] = races
+            index, every, a = fetch_state(ab, cfg)
+            state_data[ab] = index
+            every_race.extend(every)
             if a and (as_of is None or a > as_of):
                 as_of = a
-            print("%s: %d legislative races" % (ab, len(races)))
+            print("%s: %d contests, %d legislative districts indexed"
+                  % (ab, len(every), len(index)))
         except Exception as e:
             errors[ab] = str(e)[:120]
             print("%s: FAILED — %s" % (ab, e), file=sys.stderr)
@@ -249,8 +277,12 @@ def main():
             "total": len(rows),
             "withResult": sum(1 for r in rows if r["r"].get("st") in
                               ("leading", "trailing", "won", "lost", "unopposed")),
+            "races": len(every_race),
         },
         "rows": rows,
+        # Every contest the wired states publish, for the tracker's own map and
+        # seat counts. The board only needs `rows`; the tracker needs these.
+        "races": every_race,
     }
 
     path = os.path.join(ROOT, "results.json")
