@@ -3,181 +3,211 @@
   "st": "NY",
   "type": "State House",
   "dist": "11",
-  "name": "Kwani O'Pharrow"
+  "name": "Kwani O'Pharrow",
+  "polled": true
  },
  {
   "st": "NY",
   "type": "State House",
   "dist": "21",
-  "name": "Judy Griffin"
+  "name": "Judy Griffin",
+  "polled": true
  },
  {
   "st": "NY",
   "type": "State House",
   "dist": "99",
-  "name": "Christopher W. Eachus"
+  "name": "Christopher W. Eachus",
+  "polled": true
  },
  {
   "st": "NY",
   "type": "State House",
   "dist": "140",
-  "name": "William C. Conrad III"
+  "name": "William C. Conrad III",
+  "polled": true
  },
  {
   "st": "NY",
   "type": "State House",
   "dist": "135",
-  "name": "Jen Lunsford"
+  "name": "Jen Lunsford",
+  "polled": true
  },
  {
   "st": "NY",
   "type": "State House",
   "dist": "1",
-  "name": "Thomas J. Schiavoni"
+  "name": "Thomas J. Schiavoni",
+  "polled": true
  },
  {
   "st": "NY",
   "type": "State House",
   "dist": "96",
-  "name": "Patrick Carroll"
+  "name": "Patrick Carroll",
+  "polled": true
  },
  {
   "st": "NY",
   "type": "State Senate",
   "dist": "50",
-  "name": "Christopher J. Ryan"
+  "name": "Christopher J. Ryan",
+  "polled": true
  },
  {
   "st": "NY",
   "type": "State Senate",
   "dist": "52",
-  "name": "Lea Webb"
+  "name": "Lea Webb",
+  "polled": true
  },
  {
   "st": "NY",
   "type": "State Senate",
   "dist": "4",
-  "name": "Monica Martinez"
+  "name": "Monica Martinez",
+  "polled": true
  },
  {
   "st": "NY",
   "type": "State Senate",
   "dist": "11",
-  "name": "Toby Ann Stavisky"
+  "name": "Toby Ann Stavisky",
+  "polled": true
  },
  {
   "st": "NY",
   "type": "State Senate",
   "dist": "23",
-  "name": "Jessica Scarcella-Spanton"
+  "name": "Jessica Scarcella-Spanton",
+  "polled": true
  },
  {
   "st": "NY",
   "type": "State Senate",
   "dist": "41",
-  "name": "Michelle Hinchey"
+  "name": "Michelle Hinchey",
+  "polled": true
  },
  {
   "st": "NY",
   "type": "State Senate",
   "dist": "42",
-  "name": "James Skoufis"
+  "name": "James Skoufis",
+  "polled": true
  },
  {
   "st": "MD",
   "type": "State House",
   "dist": "33B",
-  "name": "Chuck Cook"
+  "name": "Chuck Cook",
+  "polled": true
  },
  {
   "st": "MD",
   "type": "State House",
   "dist": "38B",
-  "name": "Josh Hastings"
+  "name": "Josh Hastings",
+  "polled": true
  },
  {
   "st": "MD",
   "type": "State Senate",
   "dist": "30",
-  "name": "Shaneka Henson"
+  "name": "Shaneka Henson",
+  "polled": true
  },
  {
   "st": "MD",
   "type": "State Senate",
   "dist": "34",
-  "name": "Mary-Dulaney James"
+  "name": "Mary-Dulaney James",
+  "polled": true
  },
  {
   "st": "MD",
   "type": "State Senate",
   "dist": "42",
-  "name": "Stephanie Popescu"
+  "name": "Stephanie Popescu",
+  "polled": true
  },
  {
   "st": "IL",
   "type": "State Senate",
   "dist": "18",
-  "name": "Frances Ann Hurley"
+  "name": "Frances Ann Hurley",
+  "polled": true
  },
  {
   "st": "IL",
   "type": "State House",
   "dist": "84",
-  "name": "Saba Haider"
+  "name": "Saba Haider",
+  "polled": true
  },
  {
   "st": "IL",
   "type": "State Senate",
   "dist": "57",
-  "name": "Christopher Belt"
+  "name": "Christopher Belt",
+  "polled": true
  },
  {
   "st": "IL",
   "type": "State House",
   "dist": "112",
-  "name": "Katie Stuart"
+  "name": "Katie Stuart",
+  "polled": true
  },
  {
   "st": "IL",
   "type": "State House",
   "dist": "114",
-  "name": "George McClellan"
+  "name": "George McClellan",
+  "polled": true
  },
  {
   "st": "GA",
   "type": "State House",
   "dist": "145",
-  "name": "Tangie Herring"
+  "name": "Tangie Herring",
+  "polled": true
  },
  {
   "st": "GA",
   "type": "State House",
   "dist": "50",
-  "name": "Michelle Au"
+  "name": "Michelle Au",
+  "polled": true
  },
  {
   "st": "GA",
   "type": "State House",
   "dist": "137",
-  "name": "Debbie Buckner"
+  "name": "Debbie Buckner",
+  "polled": true
  },
  {
   "st": "AL",
   "type": "State House",
   "dist": "10",
-  "name": "Marilyn Lands"
+  "name": "Marilyn Lands",
+  "polled": true
  },
  {
   "st": "AL",
   "type": "State House",
   "dist": "68",
-  "name": "Thomas Jackson"
+  "name": "Thomas Jackson",
+  "polled": true
  },
  {
   "st": "AL",
   "type": "State House",
   "dist": "69",
-  "name": "Kelvin Lawrence"
+  "name": "Kelvin Lawrence",
+  "polled": true
  },
  {
   "st": "AL",
