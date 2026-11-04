@@ -1,0 +1,937 @@
+[
+ {
+  "st": "NY",
+  "type": "State House",
+  "dist": "11",
+  "name": "Kwani O'Pharrow"
+ },
+ {
+  "st": "NY",
+  "type": "State House",
+  "dist": "21",
+  "name": "Judy Griffin"
+ },
+ {
+  "st": "NY",
+  "type": "State House",
+  "dist": "99",
+  "name": "Christopher W. Eachus"
+ },
+ {
+  "st": "NY",
+  "type": "State House",
+  "dist": "140",
+  "name": "William C. Conrad III"
+ },
+ {
+  "st": "NY",
+  "type": "State House",
+  "dist": "135",
+  "name": "Jen Lunsford"
+ },
+ {
+  "st": "NY",
+  "type": "State House",
+  "dist": "1",
+  "name": "Thomas J. Schiavoni"
+ },
+ {
+  "st": "NY",
+  "type": "State House",
+  "dist": "96",
+  "name": "Patrick Carroll"
+ },
+ {
+  "st": "NY",
+  "type": "State Senate",
+  "dist": "50",
+  "name": "Christopher J. Ryan"
+ },
+ {
+  "st": "NY",
+  "type": "State Senate",
+  "dist": "52",
+  "name": "Lea Webb"
+ },
+ {
+  "st": "NY",
+  "type": "State Senate",
+  "dist": "4",
+  "name": "Monica Martinez"
+ },
+ {
+  "st": "NY",
+  "type": "State Senate",
+  "dist": "11",
+  "name": "Toby Ann Stavisky"
+ },
+ {
+  "st": "NY",
+  "type": "State Senate",
+  "dist": "23",
+  "name": "Jessica Scarcella-Spanton"
+ },
+ {
+  "st": "NY",
+  "type": "State Senate",
+  "dist": "41",
+  "name": "Michelle Hinchey"
+ },
+ {
+  "st": "NY",
+  "type": "State Senate",
+  "dist": "42",
+  "name": "James Skoufis"
+ },
+ {
+  "st": "MD",
+  "type": "State House",
+  "dist": "33B",
+  "name": "Chuck Cook"
+ },
+ {
+  "st": "MD",
+  "type": "State House",
+  "dist": "38B",
+  "name": "Josh Hastings"
+ },
+ {
+  "st": "MD",
+  "type": "State Senate",
+  "dist": "30",
+  "name": "Shaneka Henson"
+ },
+ {
+  "st": "MD",
+  "type": "State Senate",
+  "dist": "34",
+  "name": "Mary-Dulaney James"
+ },
+ {
+  "st": "MD",
+  "type": "State Senate",
+  "dist": "42",
+  "name": "Stephanie Popescu"
+ },
+ {
+  "st": "IL",
+  "type": "State Senate",
+  "dist": "18",
+  "name": "Frances Ann Hurley"
+ },
+ {
+  "st": "IL",
+  "type": "State House",
+  "dist": "84",
+  "name": "Saba Haider"
+ },
+ {
+  "st": "IL",
+  "type": "State Senate",
+  "dist": "57",
+  "name": "Christopher Belt"
+ },
+ {
+  "st": "IL",
+  "type": "State House",
+  "dist": "112",
+  "name": "Katie Stuart"
+ },
+ {
+  "st": "IL",
+  "type": "State House",
+  "dist": "114",
+  "name": "George McClellan"
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "145",
+  "name": "Tangie Herring"
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "50",
+  "name": "Michelle Au"
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "137",
+  "name": "Debbie Buckner"
+ },
+ {
+  "st": "AL",
+  "type": "State House",
+  "dist": "10",
+  "name": "Marilyn Lands"
+ },
+ {
+  "st": "AL",
+  "type": "State House",
+  "dist": "68",
+  "name": "Thomas Jackson"
+ },
+ {
+  "st": "AL",
+  "type": "State House",
+  "dist": "69",
+  "name": "Kelvin Lawrence"
+ },
+ {
+  "st": "AL",
+  "type": "State Senate",
+  "dist": "10",
+  "name": "Andrew Jones",
+  "polled": true
+ },
+ {
+  "st": "AL",
+  "type": "State Senate",
+  "dist": "13",
+  "name": "Randy Price"
+ },
+ {
+  "st": "AL",
+  "type": "State Senate",
+  "dist": "16",
+  "name": "J.T. Waggoner"
+ },
+ {
+  "st": "AL",
+  "type": "State Senate",
+  "dist": "32",
+  "name": "Chris Elliott"
+ },
+ {
+  "st": "AL",
+  "type": "State House",
+  "dist": "20",
+  "name": "James Lomax",
+  "polled": true
+ },
+ {
+  "st": "AL",
+  "type": "State House",
+  "dist": "40",
+  "name": "Chad Robertson"
+ },
+ {
+  "st": "AL",
+  "type": "State House",
+  "dist": "50",
+  "name": "Bill Morris"
+ },
+ {
+  "st": "AL",
+  "type": "State House",
+  "dist": "85",
+  "name": "Rick Rehm"
+ },
+ {
+  "st": "AL",
+  "type": "State House",
+  "dist": "101",
+  "name": "Chris Pringle"
+ },
+ {
+  "st": "AZ",
+  "type": "State Senate",
+  "dist": "2",
+  "name": "Shawnna Bolick"
+ },
+ {
+  "st": "AZ",
+  "type": "State Senate",
+  "dist": "3",
+  "name": "John Kavanagh"
+ },
+ {
+  "st": "AZ",
+  "type": "State Senate",
+  "dist": "17",
+  "name": "Christopher King"
+ },
+ {
+  "st": "AZ",
+  "type": "State Senate",
+  "dist": "27",
+  "name": "Kevin Payne"
+ },
+ {
+  "st": "AZ",
+  "type": "State House",
+  "dist": "1",
+  "name": "Selina Bliss"
+ },
+ {
+  "st": "AZ",
+  "type": "State House",
+  "dist": "1",
+  "name": "Quang Huu Nguyen"
+ },
+ {
+  "st": "AZ",
+  "type": "State House",
+  "dist": "4",
+  "name": "Matt Gress"
+ },
+ {
+  "st": "AZ",
+  "type": "State House",
+  "dist": "7",
+  "name": "Walter Blackman"
+ },
+ {
+  "st": "AZ",
+  "type": "State House",
+  "dist": "13",
+  "name": "Kevin Hartke"
+ },
+ {
+  "st": "AZ",
+  "type": "State House",
+  "dist": "13",
+  "name": "Janet Weninger"
+ },
+ {
+  "st": "AZ",
+  "type": "State House",
+  "dist": "23",
+  "name": "Michele Pena"
+ },
+ {
+  "st": "GA",
+  "type": "State Senate",
+  "dist": "19",
+  "name": "David Sikes"
+ },
+ {
+  "st": "GA",
+  "type": "State Senate",
+  "dist": "27",
+  "name": "Mike Dudgeon"
+ },
+ {
+  "st": "GA",
+  "type": "State Senate",
+  "dist": "31",
+  "name": "Jason Anavitarte"
+ },
+ {
+  "st": "GA",
+  "type": "State Senate",
+  "dist": "46",
+  "name": "Marc McMain"
+ },
+ {
+  "st": "GA",
+  "type": "State Senate",
+  "dist": "47",
+  "name": "Frank Ginn"
+ },
+ {
+  "st": "GA",
+  "type": "State Senate",
+  "dist": "51",
+  "name": "Will Wade"
+ },
+ {
+  "st": "GA",
+  "type": "State Senate",
+  "dist": "53",
+  "name": "Lanny Thomas"
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "2",
+  "name": "Steve Tarvin"
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "3",
+  "name": "Mitchell Horner"
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "4",
+  "name": "Kasey Carpenter"
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "13",
+  "name": "Katie Dempsey"
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "18",
+  "name": "Tyler Smith"
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "23",
+  "name": "Bill Fincher"
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "29",
+  "name": "Matt Dubnik",
+  "polled": true
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "34",
+  "name": "Devan Seabaugh",
+  "polled": true
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "47",
+  "name": "Jack Miller"
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "49",
+  "name": "Charles Martin Jr.",
+  "polled": true
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "99",
+  "name": "Matt Reeves",
+  "polled": true
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "100",
+  "name": "Josh Clark"
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "114",
+  "name": "Brett Mauldin"
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "147",
+  "name": "Bethany Ballard",
+  "polled": true
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "151",
+  "name": "Mike Cheokas",
+  "polled": true
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "155",
+  "name": "Matt Hatchett"
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "176",
+  "name": "James Burchett"
+ },
+ {
+  "st": "IA",
+  "type": "State Senate",
+  "dist": "3",
+  "name": "Lynn Evans"
+ },
+ {
+  "st": "IA",
+  "type": "State Senate",
+  "dist": "23",
+  "name": "Wes Enos"
+ },
+ {
+  "st": "IA",
+  "type": "State House",
+  "dist": "47",
+  "name": "Carter Nordman"
+ },
+ {
+  "st": "IA",
+  "type": "State House",
+  "dist": "51",
+  "name": "Brett Barker"
+ },
+ {
+  "st": "KS",
+  "type": "State House",
+  "dist": "42",
+  "name": "Lance Neelly"
+ },
+ {
+  "st": "KS",
+  "type": "State House",
+  "dist": "54",
+  "name": "Ken Corbet"
+ },
+ {
+  "st": "KS",
+  "type": "State House",
+  "dist": "72",
+  "name": "Avery Anderson"
+ },
+ {
+  "st": "KS",
+  "type": "State House",
+  "dist": "102",
+  "name": "Kyler Sweely"
+ },
+ {
+  "st": "KY",
+  "type": "State Senate",
+  "dist": "36",
+  "name": "Julie Raque Adams"
+ },
+ {
+  "st": "KY",
+  "type": "State House",
+  "dist": "10",
+  "name": "Josh Calloway"
+ },
+ {
+  "st": "KY",
+  "type": "State House",
+  "dist": "64",
+  "name": "Kimberly Moser"
+ },
+ {
+  "st": "MI",
+  "type": "State Senate",
+  "dist": "23",
+  "name": "Donni Steele"
+ },
+ {
+  "st": "MI",
+  "type": "State Senate",
+  "dist": "24",
+  "name": "Douglas Wozniak"
+ },
+ {
+  "st": "MI",
+  "type": "State Senate",
+  "dist": "25",
+  "name": "Andrew Beeler"
+ },
+ {
+  "st": "MI",
+  "type": "State Senate",
+  "dist": "26",
+  "name": "Matthew Bierlein"
+ },
+ {
+  "st": "MI",
+  "type": "State Senate",
+  "dist": "32",
+  "name": "Kim Cole"
+ },
+ {
+  "st": "MI",
+  "type": "State Senate",
+  "dist": "33",
+  "name": "Gina Johnsen"
+ },
+ {
+  "st": "MI",
+  "type": "State Senate",
+  "dist": "34",
+  "name": "Roger Hauck"
+ },
+ {
+  "st": "MI",
+  "type": "State House",
+  "dist": "39",
+  "name": "Pauline Wendzel"
+ },
+ {
+  "st": "MI",
+  "type": "State House",
+  "dist": "67",
+  "name": "Phil Green"
+ },
+ {
+  "st": "MI",
+  "type": "State House",
+  "dist": "88",
+  "name": "Greg VanWoerkom"
+ },
+ {
+  "st": "MI",
+  "type": "State House",
+  "dist": "90",
+  "name": "Lynn Afendoulis"
+ },
+ {
+  "st": "MI",
+  "type": "State House",
+  "dist": "97",
+  "name": "Briar Bearss"
+ },
+ {
+  "st": "NC",
+  "type": "State Senate",
+  "dist": "10",
+  "name": "Benton Sawrey"
+ },
+ {
+  "st": "NC",
+  "type": "State Senate",
+  "dist": "34",
+  "name": "Kevin Crutchfield"
+ },
+ {
+  "st": "NC",
+  "type": "State House",
+  "dist": "16",
+  "name": "Carson Smith Jr."
+ },
+ {
+  "st": "NC",
+  "type": "State House",
+  "dist": "28",
+  "name": "Larry Strickland"
+ },
+ {
+  "st": "NC",
+  "type": "State House",
+  "dist": "35",
+  "name": "Mike Schietzelt"
+ },
+ {
+  "st": "NC",
+  "type": "State House",
+  "dist": "51",
+  "name": "Charles Taylor"
+ },
+ {
+  "st": "NC",
+  "type": "State House",
+  "dist": "105",
+  "name": "Tricia Cotham"
+ },
+ {
+  "st": "OH",
+  "type": "State Senate",
+  "dist": "19",
+  "name": "Ryan Rivers"
+ },
+ {
+  "st": "OH",
+  "type": "State House",
+  "dist": "12",
+  "name": "Brian Stewart"
+ },
+ {
+  "st": "OH",
+  "type": "State House",
+  "dist": "31",
+  "name": "Mike Kahoe"
+ },
+ {
+  "st": "OH",
+  "type": "State House",
+  "dist": "44",
+  "name": "Edward L. Schimmel"
+ },
+ {
+  "st": "OH",
+  "type": "State House",
+  "dist": "60",
+  "name": "Brian Lorenz"
+ },
+ {
+  "st": "OH",
+  "type": "State House",
+  "dist": "62",
+  "name": "Jean Schmidt"
+ },
+ {
+  "st": "OH",
+  "type": "State House",
+  "dist": "66",
+  "name": "Sean Hutson"
+ },
+ {
+  "st": "OH",
+  "type": "State House",
+  "dist": "70",
+  "name": "Brian Lampton"
+ },
+ {
+  "st": "OH",
+  "type": "State House",
+  "dist": "81",
+  "name": "Patti Rockey"
+ },
+ {
+  "st": "PA",
+  "type": "State Senate",
+  "dist": "20",
+  "name": "Lisa Baker"
+ },
+ {
+  "st": "PA",
+  "type": "State Senate",
+  "dist": "46",
+  "name": "Camera Bartolotta"
+ },
+ {
+  "st": "AL",
+  "type": "State Senate",
+  "dist": "4",
+  "name": "Garlan Gudger"
+ },
+ {
+  "st": "AL",
+  "type": "State Senate",
+  "dist": "15",
+  "name": "Scott Ortis"
+ },
+ {
+  "st": "AL",
+  "type": "State Senate",
+  "dist": "27",
+  "name": "Jay Hovey"
+ },
+ {
+  "st": "AL",
+  "type": "State House",
+  "dist": "17",
+  "name": "Phil Segraves"
+ },
+ {
+  "st": "AL",
+  "type": "State House",
+  "dist": "95",
+  "name": "Frances Holk-Jones"
+ },
+ {
+  "st": "GA",
+  "type": "State Senate",
+  "dist": "8",
+  "name": "Russ Goodman"
+ },
+ {
+  "st": "GA",
+  "type": "State Senate",
+  "dist": "18",
+  "name": "Steven McNeel"
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "159",
+  "name": "Jon G. Burns"
+ },
+ {
+  "st": "IA",
+  "type": "State House",
+  "dist": "17",
+  "name": "Devon Wood"
+ },
+ {
+  "st": "IA",
+  "type": "State House",
+  "dist": "68",
+  "name": "Chad Ingels"
+ },
+ {
+  "st": "KS",
+  "type": "State House",
+  "dist": "75",
+  "name": "Tyler Coats"
+ },
+ {
+  "st": "KS",
+  "type": "State House",
+  "dist": "120",
+  "name": "Adam Smith"
+ },
+ {
+  "st": "KY",
+  "type": "State Senate",
+  "dist": "30",
+  "name": "Brandon D. Smith"
+ },
+ {
+  "st": "KY",
+  "type": "State House",
+  "dist": "2",
+  "name": "Kim Holloway"
+ },
+ {
+  "st": "KY",
+  "type": "State House",
+  "dist": "81",
+  "name": "Deanna Frazier Gordon"
+ },
+ {
+  "st": "NC",
+  "type": "State Senate",
+  "dist": "9",
+  "name": "Brent Jackson"
+ },
+ {
+  "st": "NC",
+  "type": "State House",
+  "dist": "22",
+  "name": "Wellie Jackson"
+ },
+ {
+  "st": "OH",
+  "type": "State House",
+  "dist": "40",
+  "name": "Rodney Creech"
+ },
+ {
+  "st": "PA",
+  "type": "State Senate",
+  "dist": "48",
+  "name": "Chris Gebhard"
+ },
+ {
+  "st": "OH",
+  "type": "State Senate",
+  "dist": "1",
+  "name": "Craig S. Riedel"
+ },
+ {
+  "st": "NE",
+  "type": "Ballot Measure",
+  "measure": "Initiative Measure 440",
+  "side": "Y",
+  "polled": true
+ },
+ {
+  "st": "NE",
+  "type": "Ballot Measure",
+  "measure": "Initiative Measure 441",
+  "side": "Y",
+  "polled": true
+ },
+ {
+  "st": "AL",
+  "type": "State Senate",
+  "dist": "2",
+  "name": "John Roberts",
+  "polled": true
+ },
+ {
+  "st": "AL",
+  "type": "State House",
+  "dist": "21",
+  "name": "Rex Reynolds",
+  "polled": true
+ },
+ {
+  "st": "AL",
+  "type": "State House",
+  "dist": "25",
+  "name": "Phillip Rigsby",
+  "polled": true
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "44",
+  "name": "Don Parsons",
+  "polled": true
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "46",
+  "name": "John Carson",
+  "polled": true
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "53",
+  "name": "Deborah Silcox",
+  "polled": true
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "121",
+  "name": "Mack \"Dutch\" Guest",
+  "polled": true
+ },
+ {
+  "st": "GA",
+  "type": "State House",
+  "dist": "128",
+  "name": "Trey Sheppard",
+  "polled": true
+ },
+ {
+  "st": "PA",
+  "type": "State Senate",
+  "dist": "6",
+  "name": "Frank Farry",
+  "polled": true
+ },
+ {
+  "st": "PA",
+  "type": "State Senate",
+  "dist": "16",
+  "name": "Jarrett Coleman",
+  "polled": true
+ },
+ {
+  "st": "PA",
+  "type": "State Senate",
+  "dist": "24",
+  "name": "Tracy Pennycuick",
+  "polled": true
+ },
+ {
+  "st": "PA",
+  "type": "State Senate",
+  "dist": "36",
+  "name": "Tom Jones",
+  "polled": true
+ },
+ {
+  "st": "PA",
+  "type": "State Senate",
+  "dist": "40",
+  "name": "Rosemary Brown",
+  "polled": true
+ },
+ {
+  "st": "OH",
+  "type": "State Senate",
+  "dist": "21",
+  "name": "Kent Smith"
+ },
+ {
+  "st": "PA",
+  "type": "State Senate",
+  "dist": "18",
+  "name": "Scott Janney"
+ }
+]

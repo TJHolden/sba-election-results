@@ -1,0 +1,34 @@
+name: Pull SBA race results
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # every 5 minutes (GitHub may delay a scheduled run under load)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sba-results
+  cancel-in-progress: false
+
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pull the state feeds
+        run: python3 tools/pull_sba.py
+
+      - name: Commit if anything moved
+        run: |
+          if [ -n "$(git status --porcelain results.json)" ]; then
+            git config user.name  "sba-results-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add results.json
+            git commit -m "SBA results: $(python3 -c "import json;d=json.load(open('results.json'));print(f\"{d['counts']['withResult']}/{d['counts']['total']} picks scored, states: {','.join(d['wired']) or 'none'}\")")"
+            git push
+          else
+            echo "No change in results.json"
+          fi
