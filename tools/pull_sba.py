@@ -185,11 +185,17 @@ def assess(pick, race):
     ranked = sorted(cands, key=lambda c: -c["v"])
     rank = ranked.index(mine) + 1
     out["pct"] = round(mine["v"] / total * 100, 1)
-    rival = ranked[1] if rank == 1 else ranked[0]
-    out["opp"] = rival["n"]
-    out["oppV"] = rival["v"]
-    out["oppPct"] = round(rival["v"] / total * 100, 1) if rival else None
-    out["margin"] = mine["v"] - rival["v"]
+    # The nearest rival: runner-up when we lead, leader when we don't. A
+    # single-candidate ballot has neither, so leave the comparison empty.
+    if rank == 1:
+        rival = ranked[1] if len(ranked) > 1 else None
+    else:
+        rival = ranked[0]
+    if rival is not None:
+        out["opp"] = rival["n"]
+        out["oppV"] = rival["v"]
+        out["oppPct"] = round(rival["v"] / total * 100, 1)
+        out["margin"] = mine["v"] - rival["v"]
 
     if any(c["w"] for c in cands):
         out["st"] = "won" if mine["w"] else "lost"
