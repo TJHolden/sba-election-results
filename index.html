@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261103181922">
+<meta name="build" content="20261103182633">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261103181922"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261103182633"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -3673,7 +3673,7 @@
         useEffect(() => {
           racesRef.current = races;
         }, [races]);
-        const raceSigRef = useRef(null), loadingRef = useRef(!1), priorsBusy = useRef(!1), priorTries = useRef({}), priorBuf = useRef({}), priorFlush = useRef(null), lastQ = useRef(null), loadedQ = useRef(null), lastFullRef = useRef(0), cappedRef = useRef([]), numSigRef = useRef(null), [lastChange, setLastChange] = useState(null), stalled = !!lastChange && hotNow.length > 0 && nowTick - lastChange > STALL_MS, load = useCallback(async (q, { silent = !1 } = {}) => {
+        const raceSigRef = useRef(null), fastRef = useRef(null), loadingRef = useRef(!1), priorsBusy = useRef(!1), priorTries = useRef({}), priorBuf = useRef({}), priorFlush = useRef(null), lastQ = useRef(null), loadedQ = useRef(null), lastFullRef = useRef(0), cappedRef = useRef([]), numSigRef = useRef(null), [lastChange, setLastChange] = useState(null), stalled = !!lastChange && hotNow.length > 0 && nowTick - lastChange > STALL_MS, load = useCallback(async (q, { silent = !1 } = {}) => {
           const sq = (silent && loadedQ.current != null ? loadedQ.current : q != null ? q : query).trim(), fresh = lastQ.current !== null && lastQ.current !== sq.toLowerCase();
           if (!sq) {
             setRaces([]), setApi("idle"), setApiMsg("Enter a month and year (e.g. November 2026) or a race name, then Load.");
@@ -3695,7 +3695,7 @@
               }
             }
           }
-          if (!silent && !wasLive ? (setApi("loading"), setApiMsg(""), setProg({ loaded: 0, total: null }), setRaces([])) : (setRefreshing(!0), silent || setProg({ loaded: 0, total: null })), !silent)
+          if (!silent && !wasLive ? (setApi("loading"), setApiMsg(""), setProg({ loaded: 0, total: null }), setRaces([])) : (setRefreshing(!0), silent || setProg({ loaded: 0, total: null })), fastRef.current = null, !silent)
             try {
               const prior = (racesRef.current && racesRef.current.length ? racesRef.current : lsGet(`races:${sq.toLowerCase()}`, 1296e5)) || [], sbaIds0 = sbaRef.current, mine = (r) => r && r.id != null && (ONLY && r.abbr === CLIENT.state || !!(sbaIds0 && sbaIds0.has(r.id))), copy = prior.map((r) => ({ ...r })), first = copy.filter(mine).slice(0, 300);
               first.length && (await pmap(first, async (r) => {
@@ -3724,7 +3724,7 @@
                   });
                 } catch {
                 }
-              }, 8), setRaces(copy), setApi("live"), apiRef.current = "live", setRefreshedAt(/* @__PURE__ */ new Date()));
+              }, 8), fastRef.current = copy, setRaces(copy), setApi("live"), apiRef.current = "live", setRefreshedAt(/* @__PURE__ */ new Date()));
             } catch {
             }
           const progressive = !silent && !wasLive;
@@ -3738,7 +3738,12 @@
             let data = await fetchAll(sq, (l, t) => {
               (!silent || !wasLive) && setProg({ loaded: l, total: t });
             }, progressive ? (partial) => {
-              partial.length && setRaces(partial);
+              if (!partial.length) return;
+              const f = fastRef.current;
+              if (f && f.length) {
+                const have = new Set(partial.map((r) => r.id)), extra = f.filter((r) => !have.has(r.id));
+                setRaces(extra.length ? [...partial, ...extra] : partial);
+              } else setRaces(partial);
             } : null, onlyStates);
             if (onlyStates && !ONLY) {
               const set = new Set(onlyStates), keepOld = racesRef.current.filter((r) => !set.has(r.abbr)), prevCap = cappedRef.current.filter((a) => !set.has(a));
