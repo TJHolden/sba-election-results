@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261103185635">
+<meta name="build" content="20261103190533">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261103185635"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261103190533"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -220,7 +220,7 @@
         const d = r.district ? String(parseInt(r.district, 10) || r.district) : null;
         return { office: r.type === "State Assembly" || r.type === "House of Delegates" ? "State House" : r.type, district: d };
       }
-      const CIVIC = "https://civicapi.org/api/v2", SENATE_HOLDOVERS = { D: 34, R: 31, note: "Seats not up in 2026: 32 Democrats + 2 independents who caucus with them \xB7 31 Republicans (verified Oct 22, 2026 \u2014 270toWin, Ballotpedia)" }, CHAMBER = { Senate: { total: 100, majority: 51 }, House: { total: 435, majority: 218 } }, GOV_TOTAL_2026 = 36, NO_ACC = {}, TRACK_IDS = typeof define_TRACK_IDS_default != "undefined" ? define_TRACK_IDS_default : [], POLLS_CLOSE_2026 = (() => {
+      const CIVIC = "https://civicapi.org/api/v2", SENATE_HOLDOVERS = { D: 34, R: 31, note: "Seats not up in 2026: 32 Democrats + 2 independents who caucus with them \xB7 31 Republicans (verified Oct 22, 2026 \u2014 270toWin, Ballotpedia)" }, CHAMBER = { Senate: { total: 100, majority: 51 }, House: { total: 435, majority: 218 } }, GOV_TOTAL_2026 = 36, NO_ACC = {}, TRACK_IDS = typeof define_TRACK_IDS_default != "undefined" ? define_TRACK_IDS_default : [], trackKey = () => "trackids:" + (CLIENT && (CLIENT.state || CLIENT.name) || "client"), POLLS_CLOSE_2026 = (() => {
         const t = (h) => new Date(Date.UTC(2026, 10, 3, Math.floor(h) + 5, Math.round(h % 1 * 60))).toISOString();
         return Object.fromEntries(Object.entries({ AL: [20], AK: [24, 25], AZ: [21], AR: [20.5], CA: [23], CO: [21], CT: [20], DE: [20], DC: [20], FL: [19, 20], GA: [19], HI: [24], ID: [22, 23], IL: [20], IN: [18, 19], IA: [21], KS: [20, 21], KY: [18, 19], LA: [21], ME: [20], MD: [20], MA: [20], MI: [20, 21], MN: [21], MS: [20], MO: [20], MT: [22], NE: [21, 22], NV: [22], NH: [20], NJ: [20], NM: [21], NY: [21], NC: [19.5], ND: [20, 21], OH: [19.5], OK: [20], OR: [23, 22], PA: [20], RI: [20], SC: [19], SD: [20, 21], TN: [20, 19], TX: [20, 21], UT: [22], VT: [19], VA: [19], WA: [23], WV: [19.5], WI: [21], WY: [21] }).map(([ab, hs]) => [ab, hs.map(t)]));
       })(), POLLS_SPLIT = {
@@ -3703,7 +3703,7 @@
           }
           if (!silent && !wasLive ? (setApi("loading"), setApiMsg(""), setProg({ loaded: 0, total: null }), setRaces([])) : (setRefreshing(!0), silent || setProg({ loaded: 0, total: null })), fastRef.current = null, !silent)
             try {
-              const ids = [.../* @__PURE__ */ new Set([...TRACK_IDS || [], ...lsGet("trackids", 1296e5) || []])];
+              const ids = [.../* @__PURE__ */ new Set([...TRACK_IDS || [], ...lsGet(trackKey(), 1296e5) || []])];
               if (ids.length) {
                 const built = [];
                 if (await pmap(ids.slice(0, 300), async (id) => {
@@ -3884,7 +3884,7 @@
           sbaRef.current = sbaByRace;
           try {
             const ids = [...sbaByRace ? sbaByRace.keys() : []];
-            ids.length && lsSet("trackids", ids);
+            ids.length && lsSet(trackKey(), ids);
           } catch {
           }
         }, [sbaByRace, races]), useEffect(() => {
