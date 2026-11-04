@@ -16,6 +16,8 @@ rather than pretending there is no result.
 Runs in GitHub Actions, where there is no CORS and no rate limiting.
 """
 import json, os, re, sys, datetime, urllib.request, urllib.error
+import http.cookiejar
+from html.parser import HTMLParser
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -33,9 +35,18 @@ STATES = {
         "house": r"^State House of Representatives\s*-\s*District\s*(\d+)",
         "senate": r"^State Senate\s*-\s*District\s*(\d+)",
     },
+    "AL": {"fetch": "alabama"},
 }
 
 TIMEOUT = 45
+
+# --- states that publish their own way -------------------------------------
+# Alabama's election-night site is ASP.NET: 20 pages of contests reachable only
+# by replaying the pager's postback, with no plain URL per page. So walk it the
+# way a browser would, carrying the viewstate forward.
+AL_URL = ("https://www2.alabamavotes.gov/electionNight/"
+          "statewideResultsByContest.aspx?ecode=1001305")
+AL_MAX_PAGES = 30
 
 
 def get_json(url):
@@ -116,6 +127,141 @@ def same_person(a, b):
     if fa == fb or fa.startswith(fb) or fb.startswith(fa):
         return True
     return fa[0] == fb[0] and (len(fa) <= 2 or len(fb) <= 2)
+
+
+class _ALParser(HTMLParser):
+    """Pull contests and candidate rows out of one Alabama results page.
+
+    Each contest is a <td class="enrContestHeader"> followed by candidate rows
+    whose cells carry enrCandNameCol / enrCandVotePerCol / enrCandVoteNumCol.
+    """
+
+    def __init__(self):
+        HTMLParser.__init__(self)
+        self.contests = []        # [[name, [[cand, pct, votes], ...]], ...]
+        self._cell = None
+        self._buf = []
+        self._row = {}
+        self.hidden = {}
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag == "input" and a.get("type") == "hidden" and a.get("name"):
+            self.hidden[a["name"]] = a.get("value", "")
+            return
+        if tag != "td":
+            return
+        cls = a.get("class", "")
+        if "enrContestHeader" in cls:
+            self._cell = "header"
+        elif "enrCandNameCol" in cls and "enrCandidatesHeader" not in cls:
+            self._cell = "name"
+        elif "enrCandVotePerCol" in cls and "enrCandidatesHeader" not in cls:
+            self._cell = "pct"
+        elif "enrCandVoteNumCol" in cls and "enrCandidatesHeader" not in cls:
+            self._cell = "votes"
+        else:
+            self._cell = None
+        self._buf = []
+
+    def handle_data(self, data):
+        if self._cell:
+            self._buf.append(data)
+
+    def handle_endtag(self, tag):
+        if tag != "td" or not self._cell:
+            return
+        text = re.sub(r"\s+", " ", "".join(self._buf)).strip()
+        if self._cell == "header":
+            if text:
+                self.contests.append([text, []])
+        elif self._cell == "name":
+            self._row = {"name": text}
+        elif self._cell == "pct":
+            self._row["pct"] = text
+        elif self._cell == "votes":
+            self._row["votes"] = text
+            if self.contests and self._row.get("name"):
+                self.contests[-1][1].append(
+                    [self._row["name"], self._row.get("pct", ""), text])
+            self._row = {}
+        self._cell = None
+        self._buf = []
+
+
+AL_PARTY = {"REP": "R", "DEM": "D", "LIB": "L", "IND": "I", "GRN": "G", "CON": "C"}
+
+
+def _al_num(s):
+    s = re.sub(r"[^\d]", "", s or "")
+    return int(s) if s else 0
+
+
+def fetch_alabama():
+    """Walk Alabama's paged results and return (pick index, every contest, asOf)."""
+    import urllib.parse
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+    hdrs = {"User-Agent": "sba-election-results/1.0 (github actions)"}
+
+    def get(url, body=None):
+        req = urllib.request.Request(url, data=body, headers=dict(hdrs))
+        if body:
+            req.add_header("Content-Type", "application/x-www-form-urlencoded")
+        with opener.open(req, timeout=TIMEOUT) as r:
+            return r.read().decode("utf-8", errors="replace")
+
+    html = get(AL_URL)
+    index, every, seen = {}, [], set()
+
+    for _ in range(AL_MAX_PAGES):
+        p = _ALParser()
+        p.feed(html)
+
+        for name, rows in p.contests:
+            name = name.strip()
+            if not name or name in seen:
+                continue
+            seen.add(name)
+            cands = []
+            for cname, pct, votes in rows:
+                m = re.match(r"^(.*?)\s*\((\w+)\)\s*$", cname)
+                nm = (m.group(1) if m else cname).strip()
+                pty = AL_PARTY.get((m.group(2).upper() if m else ""), "")
+                if not nm:
+                    continue
+                cands.append({"n": nm, "p": pty, "inc": False,
+                              "v": _al_num(votes), "w": False,
+                              "wi": bool(re.match(r"^write[- ]?in$", nm, re.I))})
+            if not cands:
+                continue
+            total = sum(c["v"] for c in cands)
+            race = {"race": name, "v": total, "ru": 0, "tu": 0, "c": cands}
+
+            every.append({
+                "st": "AL", "n": name, "d": district_of(name),
+                "ru": 0, "tu": 0, "v": total,
+                "c": [[c["n"], c["p"], c["v"], 0, 0, 1 if c["wi"] else 0]
+                      for c in cands],
+            })
+
+            m = re.match(r"^STATE REPRESENTATIVE,?\s*DISTRICT\s*(\d+)", name, re.I)
+            if m:
+                index[("State House", m.group(1))] = race
+            else:
+                m = re.match(r"^STATE SENATOR,?\s*DISTRICT\s*(\d+)", name, re.I)
+                if m:
+                    index[("State Senate", m.group(1))] = race
+
+        pg = re.search(r"Page:\s*(\d+)\s*of\s*(\d+)", html, re.I)
+        if not pg or int(pg.group(1)) >= int(pg.group(2)):
+            break
+        form = dict(p.hidden)
+        form["__EVENTTARGET"] = "cmdNext"
+        form["__EVENTARGUMENT"] = ""
+        html = get(AL_URL, urllib.parse.urlencode(form).encode())
+
+    return index, every, None
 
 
 def district_of(name):
@@ -239,7 +385,10 @@ def main():
     state_data, every_race, errors, as_of = {}, [], {}, None
     for ab, cfg in STATES.items():
         try:
-            index, every, a = fetch_state(ab, cfg)
+            if cfg.get("fetch") == "alabama":
+                index, every, a = fetch_alabama()
+            else:
+                index, every, a = fetch_state(ab, cfg)
             state_data[ab] = index
             every_race.extend(every)
             if a and (as_of is None or a > as_of):
