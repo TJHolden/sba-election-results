@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261103181556">
+<meta name="build" content="20261103181922">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261103181556"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261103181922"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -3695,7 +3695,38 @@
               }
             }
           }
-          !silent && !wasLive ? (setApi("loading"), setApiMsg(""), setProg({ loaded: 0, total: null }), setRaces([])) : (setRefreshing(!0), silent || setProg({ loaded: 0, total: null }));
+          if (!silent && !wasLive ? (setApi("loading"), setApiMsg(""), setProg({ loaded: 0, total: null }), setRaces([])) : (setRefreshing(!0), silent || setProg({ loaded: 0, total: null })), !silent)
+            try {
+              const prior = (racesRef.current && racesRef.current.length ? racesRef.current : lsGet(`races:${sq.toLowerCase()}`, 1296e5)) || [], sbaIds0 = sbaRef.current, mine = (r) => r && r.id != null && (ONLY && r.abbr === CLIENT.state || !!(sbaIds0 && sbaIds0.has(r.id))), copy = prior.map((r) => ({ ...r })), first = copy.filter(mine).slice(0, 300);
+              first.length && (await pmap(first, async (r) => {
+                try {
+                  const res = await fetch(`${CIVIC}/race/${r.id}`);
+                  if (!res.ok) return;
+                  const n = normalize(await res.json());
+                  if (!n || n.v1 + n.v2 < r.v1 + r.v2) return;
+                  Object.assign(r, {
+                    c1: n.c1,
+                    c2: n.c2,
+                    p1: n.p1,
+                    p2: n.p2,
+                    a1: n.a1,
+                    a2: n.a2,
+                    v1: n.v1,
+                    v2: n.v2,
+                    pn1: n.pn1,
+                    pn2: n.pn2,
+                    rpt: n.rpt,
+                    rptRaw: n.rptRaw,
+                    called: n.called,
+                    winner: n.winner,
+                    others: n.others,
+                    ...n.wname ? { wname: n.wname, wnames: n.wnames } : {}
+                  });
+                } catch {
+                }
+              }, 8), setRaces(copy), setApi("live"), apiRef.current = "live", setRefreshedAt(/* @__PURE__ */ new Date()));
+            } catch {
+            }
           const progressive = !silent && !wasLive;
           let onlyStates = null;
           if (ONLY && CLIENT.state) onlyStates = [CLIENT.state];
