@@ -17,6 +17,7 @@ Runs in GitHub Actions, where there is no CORS and no rate limiting.
 """
 import json, os, re, sys, datetime, urllib.request, urllib.error
 import http.cookiejar
+import time
 from html.parser import HTMLParser
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -47,6 +48,9 @@ TIMEOUT = 45
 AL_URL = ("https://www2.alabamavotes.gov/electionNight/"
           "statewideResultsByContest.aspx?ecode=1001305")
 AL_MAX_PAGES = 30
+AL_REQ_TIMEOUT = 20      # per request; the site is slow under election-night load
+AL_BUDGET = 100          # seconds for the whole walk, so one slow state can't
+                         # stall the cycle and hold up the states that do answer
 
 
 def get_json(url):
@@ -208,13 +212,18 @@ def fetch_alabama():
         req = urllib.request.Request(url, data=body, headers=dict(hdrs))
         if body:
             req.add_header("Content-Type", "application/x-www-form-urlencoded")
-        with opener.open(req, timeout=TIMEOUT) as r:
+        with opener.open(req, timeout=AL_REQ_TIMEOUT) as r:
             return r.read().decode("utf-8", errors="replace")
 
+    started = time.time()
     html = get(AL_URL)
     index, every, seen = {}, [], set()
 
-    for _ in range(AL_MAX_PAGES):
+    for page_no in range(AL_MAX_PAGES):
+        if time.time() - started > AL_BUDGET:
+            print("AL: budget reached after %d pages, publishing what was read"
+                  % page_no, file=sys.stderr)
+            break
         p = _ALParser()
         p.feed(html)
 
@@ -254,6 +263,10 @@ def fetch_alabama():
                     index[("State Senate", m.group(1))] = race
 
         pg = re.search(r"Page:\s*(\d+)\s*of\s*(\d+)", html, re.I)
+        if pg:
+            print("AL: page %s of %s, %d contests so far (%.0fs)"
+                  % (pg.group(1), pg.group(2), len(every), time.time() - started),
+                  file=sys.stderr)
         if not pg or int(pg.group(1)) >= int(pg.group(2)):
             break
         form = dict(p.hidden)
