@@ -242,16 +242,26 @@ def _al_export(opener, hdrs, html):
         print("AL sample : %s" % (sample,), file=sys.stderr)
 
     def col(*names):
-        for i, h in enumerate(header):
-            for n in names:
+        """First header equal to a preferred name, else first containing one.
+
+        Order matters: Alabama ships both 'Contest Code' and 'Contest Title',
+        and both 'Candidate Number' and 'Candidate Name', so a bare substring
+        match picks the numeric column and every contest collapses to a code.
+        """
+        for n in names:
+            for i, h in enumerate(header):
+                if h == n:
+                    return i
+        for n in names:
+            for i, h in enumerate(header):
                 if n in h:
                     return i
         return None
 
-    i_contest = col("contest", "office", "race")
-    i_cand = col("candidate", "name")
-    i_party = col("party")
-    i_votes = col("vote")
+    i_contest = col("contest title", "contest name", "office", "contest")
+    i_cand = col("candidate name", "candidate")
+    i_party = col("party code", "party")
+    i_votes = col("votes", "vote")
     if i_contest is None or i_cand is None or i_votes is None:
         raise ValueError("unexpected export columns: %s" % rows[0])
 
@@ -390,6 +400,22 @@ def fetch_alabama():
         html = get(AL_URL, urllib.parse.urlencode(form).encode())
 
     return index, every, None
+
+
+SOURCE_PAGES = {
+    "AL": "https://www2.alabamavotes.gov/electionNight/"
+          "statewideResultsByContest.aspx?ecode=1001305",
+}
+
+
+def source_url(ab):
+    """Where a state's numbers come from, for the page's own attribution."""
+    if ab in SOURCE_PAGES:
+        return SOURCE_PAGES[ab]
+    cfg = STATES.get(ab) or {}
+    if cfg.get("host") and cfg.get("juris"):
+        return "https://%s/results/public/%s" % (cfg["host"], cfg["juris"])
+    return ""
 
 
 def district_of(name):
@@ -548,8 +574,7 @@ def main():
         "asOf": as_of,
         "wired": wired,
         "errors": errors,
-        "sources": {ab: "https://%s/results/public/%s" % (STATES[ab]["host"], STATES[ab]["juris"])
-                    for ab in wired},
+        "sources": {ab: source_url(ab) for ab in wired},
         "counts": {
             "total": len(rows),
             "withResult": sum(1 for r in rows if r["r"].get("st") in
