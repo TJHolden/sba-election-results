@@ -1,9 +1,22 @@
 name: Pull SBA race results
 
+# GitHub's scheduler was not firing at all on election night — 30 minutes after
+# this workflow was added, zero scheduled runs had started, because `schedule`
+# is delayed hard under load and every-5-minutes lands on the busiest slots.
+# So the refresh does not depend on it: one dispatched run loops on its own
+# clock for hours. The cron below is only a backstop for after that ends.
+
 on:
-  schedule:
-    - cron: "*/5 * * * *"   # every 5 minutes (GitHub may delay a scheduled run under load)
   workflow_dispatch:
+    inputs:
+      minutes:
+        description: "How long this run keeps polling (minutes)"
+        default: "300"
+      interval:
+        description: "Seconds between pulls"
+        default: "120"
+  schedule:
+    - cron: "17,47 * * * *"   # backstop only, off the busy 5-minute boundaries
 
 permissions:
   contents: write
@@ -15,20 +28,35 @@ concurrency:
 jobs:
   pull:
     runs-on: ubuntu-latest
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
 
-      - name: Pull the state feeds
-        run: python3 tools/pull_sba.py
-
-      - name: Commit if anything moved
+      - name: Pull state feeds until the deadline
+        env:
+          MINUTES: ${{ github.event.inputs.minutes || '1' }}
+          INTERVAL: ${{ github.event.inputs.interval || '120' }}
         run: |
-          if [ -n "$(git status --porcelain results.json)" ]; then
-            git config user.name  "sba-results-bot"
-            git config user.email "actions@users.noreply.github.com"
-            git add results.json
-            git commit -m "SBA results: $(python3 -c "import json;d=json.load(open('results.json'));print(f\"{d['counts']['withResult']}/{d['counts']['total']} picks scored, states: {','.join(d['wired']) or 'none'}\")")"
-            git push
-          else
-            echo "No change in results.json"
-          fi
+          set -u
+          git config user.name  "sba-results-bot"
+          git config user.email "actions@users.noreply.github.com"
+          END=$(( $(date +%s) + MINUTES * 60 ))
+          n=0
+          while :; do
+            n=$((n+1))
+            echo "--- pull #$n at $(date -u +%H:%M:%SZ) ---"
+            python3 tools/pull_sba.py || echo "pull failed, will retry next cycle"
+            if [ -n "$(git status --porcelain results.json)" ]; then
+              MSG=$(python3 -c "import json;d=json.load(open('results.json'));print(f\"SBA results: {d['counts']['withResult']}/{d['counts']['total']} scored, states: {','.join(d['wired']) or 'none'}\")")
+              git add results.json
+              git commit -q -m "$MSG"
+              git pull --rebase --autostash -q || true
+              git push -q || echo "push failed, will retry next cycle"
+              echo "committed: $MSG"
+            else
+              echo "no change"
+            fi
+            [ "$(date +%s)" -ge "$END" ] && break
+            sleep "$INTERVAL"
+          done
+          echo "finished after $n pulls"
