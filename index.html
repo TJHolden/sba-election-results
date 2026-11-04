@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261103165435">
+<meta name="build" content="20261103170601">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261103165435"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261103170601"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -484,8 +484,12 @@
         }, byClose = (a, b) => {
           const ha = closesAt(a) <= nowMs + HOT_LEAD_MS ? 0 : 1, hb = closesAt(b) <= nowMs + HOT_LEAD_MS ? 0 : 1;
           return ha - hb || closesAt(a) - closesAt(b);
-        };
-        if (await Promise.all([pmap(all.filter(isBig).sort(byClose), doState, 1), pmap(all.filter((ab) => !isBig(ab)).sort(byClose), doState, 3)]), failed.length && failed.length < 10) {
+        }, runGroup = async (list) => {
+          if (!list.length) return;
+          const L = [...list].sort(byClose);
+          await Promise.all([pmap(L.filter(isBig), doState, 1), pmap(L.filter((ab) => !isBig(ab)), doState, 3)]);
+        }, isHot = (ab) => closesAt(ab) <= nowMs + HOT_LEAD_MS;
+        if (await runGroup(all.filter(isHot)), await runGroup(all.filter((ab) => !isHot(ab))), failed.length && failed.length < 10) {
           const retry = failed.splice(0);
           for (const abbr of retry) {
             await sleep(2500);
