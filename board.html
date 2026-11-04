@@ -66,11 +66,12 @@ button.pill .n{opacity:.65;margin-left:3px}
 .cand{display:grid;grid-template-columns:minmax(140px,240px) minmax(70px,1fr) 56px 84px;gap:12px;
   align-items:center;padding:5px 8px;border-radius:6px}
 .cand.ours{background:rgba(201,162,74,.15);box-shadow:inset 3px 0 0 var(--gold)}
-.cname{font-size:13px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text2)}
+.cname{font-size:13px;min-width:0;display:flex;align-items:center;gap:0;color:var(--text2)}
+.cname .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .cand.ours .cname{font-weight:700;color:var(--text)}
 .cname .pty{font-weight:400;color:var(--text3)}
 .badge{font-size:8.5px;font-weight:800;letter-spacing:.5px;color:#fff;background:var(--gold);
-  padding:1px 5px;border-radius:3px;margin-left:5px;vertical-align:1px;text-transform:uppercase}
+  padding:1px 5px;border-radius:3px;margin-left:5px;vertical-align:1px;text-transform:uppercase;flex:none}
 .track{height:8px;background:var(--border);border-radius:3px;overflow:hidden}
 .track i{display:block;height:100%}
 .cpct{font-family:var(--mono);font-size:12.5px;text-align:right;font-weight:700}
@@ -160,13 +161,13 @@ function raceHTML(row){
     const meCol=PCOL[r.party]||"var(--text3)";
     body=`<div class="cands">
       <div class="cand ours">
-        <div class="cname">${r.st==="won"?'<span class="win">&#10003; </span>':""}${esc(r.feedName||row.name)}${r.party?` <span class="pty">(${esc(r.party)})</span>`:""}${r.inc?' <span class="pty">· inc.</span>':""}<span class="badge">SBA</span></div>
+        <div class="cname"><span class="nm">${r.st==="won"?'<span class="win">&#10003; </span>':""}${esc(r.feedName||row.name)}${r.party?` <span class="pty">(${esc(r.party)})</span>`:""}${r.inc?' <span class="pty">· inc.</span>':""}</span><span class="badge">SBA</span></div>
         <div class="track"><i style="width:${Math.min(100,mePct)}%;background:${meCol}"></i></div>
         <div class="cpct" style="color:${meCol}">${mePct.toFixed(1)}%</div>
         <div class="cvot">${num(r.v)}</div>
       </div>
       ${r.opp?`<div class="cand">
-        <div class="cname">${esc(r.opp)}</div>
+        <div class="cname"><span class="nm">${esc(r.opp)}</span></div>
         <div class="track"><i style="width:${Math.min(100,opPct)}%;background:var(--text4)"></i></div>
         <div class="cpct">${opPct.toFixed(1)}%</div>
         <div class="cvot">${num(r.oppV)}</div>
