@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBA Election Night</title><meta name="robots" content="noindex, nofollow">
-<meta name="build" content="20261103170601">
+<meta name="build" content="20261103181008">
 <script>
 /* Soft refresh: when a newer version of this page is published, swap it in quietly at a calm moment
    (tab in the background, or no mouse, scroll or typing for 45 seconds), keeping the view (it lives in the address bar) and the scroll position. */
 (function(){
-  var B="20261103170601"; if(!/\.github\.io$/.test(location.hostname)) return;
+  var B="20261103181008"; if(!/\.github\.io$/.test(location.hostname)) return;
   var KEY="en-soft", last=Date.now(), target=null, ss; try{ ss=window.sessionStorage; }catch(e){ ss=null; }
   function get(k){ try{ return ss&&JSON.parse(ss.getItem(k)||"null"); }catch(e){ return null; } }
   function put(k,v){ try{ ss&&ss.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -3728,6 +3728,40 @@
               const keep = racesRef.current.filter((r) => failed.includes(r.abbr) && !data.some((d) => d.id === r.id));
               keep.length && (data = Object.assign([...data, ...keep], { failed, capped: data.capped || [] }));
             }
+            try {
+              const failedSet = new Set(failed), pcMap = pollsCloseRef.current || {}, nowT = Date.now(), closed = (ab) => {
+                const c = pcMap[ab], t = c ? new Date(c).getTime() : NaN;
+                return Number.isFinite(t) && nowT >= t;
+              }, sbaIds = sbaRef.current, tracked = (r) => r.level === "Federal" || ONLY && r.abbr === CLIENT.state || !!(sbaIds && sbaIds.has(r.id)), need = data.filter((r) => tracked(r) && (failedSet.has(r.abbr) || r.v1 + r.v2 === 0 && closed(r.abbr))).slice(0, 300);
+              need.length && await pmap(need, async (r) => {
+                try {
+                  const res = await fetch(`${CIVIC}/race/${r.id}`);
+                  if (!res.ok) return;
+                  const n = normalize(await res.json());
+                  if (!n || n.v1 + n.v2 <= r.v1 + r.v2) return;
+                  Object.assign(r, {
+                    c1: n.c1,
+                    c2: n.c2,
+                    p1: n.p1,
+                    p2: n.p2,
+                    a1: n.a1,
+                    a2: n.a2,
+                    v1: n.v1,
+                    v2: n.v2,
+                    pn1: n.pn1,
+                    pn2: n.pn2,
+                    rpt: n.rpt,
+                    rptRaw: n.rptRaw,
+                    called: n.called,
+                    winner: n.winner,
+                    others: n.others,
+                    ...n.wname ? { wname: n.wname, wnames: n.wnames } : {}
+                  });
+                } catch {
+                }
+              }, 8);
+            } catch {
+            }
             const capped = data.capped || [], capNote = capped.length ? ` \xB7 ${capped.join(", ")}: every federal, state and ballot race loaded, local races only partly (civicAPI lists 4,000+)` : "", failNote = failed.length ? ` \u2014 ${failed.length === 1 ? failed[0] + " didn't answer" : failed.join(", ") + " didn't answer"}; retrying on the next refresh` : "";
             if (!data.length)
               !wasLive || !silent ? (setRaces([]), setApi("empty"), setApiMsg(`No races found for "${sq}". Try a month and year like "November 2026", a year, or a state and office like "Virginia Governor".`)) : (setApi("live"), setApiMsg("Refresh returned no races \u2014 showing last good data."));
@@ -3807,7 +3841,7 @@
             const pr0 = isPres ? priorFor(r) : pickPrior(priors[r.id], cmpYear, r), pr = pr0 && !priorOk(r, pr0) ? null : pr0, unc = pr && (isUncontested(r) || isUncontested(pr));
             return pr && (o = { ...o, prior: pr, priorYears: isPres ? [2024] : Object.keys(priors[r.id].byYear).map(Number).sort((a, b) => b - a), shift: unc ? null : shiftOf(o, pr), turnout: unc ? null : turnoutRatio(o, pr), flip: !isPres && isDecided(o) && !isUncontested(o) && leaderOf(o) !== leaderOf(pr) && pr.v1 + pr.v2 > 0 && !runoffUnclear(o, pr) }), o;
           });
-        }, [races, pollRows, hideLocal, priors, cmpYear, pres24, base24]), sbaMatches = useMemo(() => SBA_PICKS.length ? sbaMatch(SBA_PICKS, all).filter((x) => !x.dup && x.inFeed !== !1) : STATE_ED ? all.filter((r) => r.abbr === CLIENT.state && String(r.electionDate).startsWith("2026-11") && (r.level === "Federal" && (r.type === "House" || r.type === "Senate") || r.level === "Statewide" || r.level === "State Legislative" || r.level === "Ballot Measure" && !r.localMeasure)).map((r, i) => ({ i, p: { st: r.abbr, type: r.level === "Ballot Measure" ? "Ballot Measure" : r.type, name: r.name, label: r.name }, race: r, cand: null, inFeed: !0, neutral: !0, measure: r.level === "Ballot Measure" })) : [], [all]), sbaByRace = useMemo(() => {
+        }, [races, pollRows, hideLocal, priors, cmpYear, pres24, base24]), sbaMatches = useMemo(() => SBA_PICKS.length ? sbaMatch(SBA_PICKS, all).filter((x) => !x.dup && x.inFeed !== !1) : STATE_ED ? all.filter((r) => r.abbr === CLIENT.state && String(r.electionDate).startsWith("2026-11") && (r.level === "Federal" && (r.type === "House" || r.type === "Senate") || r.level === "Statewide" || r.level === "State Legislative" || r.level === "Ballot Measure" && !r.localMeasure)).map((r, i) => ({ i, p: { st: r.abbr, type: r.level === "Ballot Measure" ? "Ballot Measure" : r.type, name: r.name, label: r.name }, race: r, cand: null, inFeed: !0, neutral: !0, measure: r.level === "Ballot Measure" })) : [], [all]), sbaRef = useRef(null), sbaByRace = useMemo(() => {
           const m = /* @__PURE__ */ new Map();
           return sbaMatches.forEach((x) => {
             if (x.race && x.cand) {
@@ -3817,6 +3851,8 @@
           }), m;
         }, [sbaMatches]);
         useEffect(() => {
+          sbaRef.current = sbaByRace;
+        }, [sbaByRace]), useEffect(() => {
           RACE_INDEX = all;
         }, [all]);
         const modeRaces = useMemo(() => all.filter((r) => modeFilter(r, effMode)), [all, effMode]), anyVotes = useMemo(() => all.some((r) => r.v1 + r.v2 > 0 && !preElection(r.electionDate)), [all]), [baseTry, setBaseTry] = useState(0);
